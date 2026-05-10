@@ -206,7 +206,7 @@ This repository contains two independent automation frameworks:
 
 These test suites are intentionally executed separately to mirror real-world CI/CD pipeline stages and to prevent event loop conflicts.
 
-⚠️ Note: The FastAPI mock backend must be running locally on http://localhost:8080.
+⚠️ Note: The FastAPI mock service used by this framework is maintained in the `sut/FastAPIMockApp` submodule. Docker startup and health validation instructions are documented in the FastAPIMockApp repository README. The FastAPI mock backend must be running locally on http://localhost:8080.
 
 ### 🚀 Run API Tests
 
