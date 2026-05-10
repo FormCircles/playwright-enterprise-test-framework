@@ -29,6 +29,10 @@ jobs:
           pip install -r requirements.txt
           pip install -r sut/FastAPIMockApp/requirements.txt
 
+      - name: Build FastAPI Docker image
+        run: |
+          docker build -t fastapi-mock-enterprise-app:ci ./sut/FastAPIMockApp
+
       - name: Install Playwright browsers
         run: |
           playwright install --with-deps
