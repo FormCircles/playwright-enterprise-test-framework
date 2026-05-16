@@ -1,16 +1,16 @@
-import yaml
 from pathlib import Path
+import yaml
 
 
-CONFIG_FILE = Path("config/environments.yaml")
+CONFIG_FILE = Path(__file__).resolve().parent / "environments.yaml"
 
 
 class Settings:
     def __init__(self, env="local"):
-        with open(CONFIG_FILE, "r") as file:
-            data = yaml.safe_load(file)
+        with CONFIG_FILE.open("r", encoding="utf-8") as file:
+            environments = yaml.safe_load(file)
 
-        if env not in data:
+        if env not in environments:
             raise ValueError(f"Unknown environment: {env}")
 
-        self.base_url = data[env]["base_url"]
+        self.base_url = environments[env]["base_url"]
