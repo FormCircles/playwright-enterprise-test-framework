@@ -31,11 +31,21 @@ def config(request):
     env = request.config.getoption("--env")
     return Settings(env)
 
-
 def pytest_addoption(parser):
     parser.addoption(
         "--env",
         action="store",
         default="dev",
-        help="Environment to run tests against"
+        help="Target test environment: dev, qa, staging"
     )
+
+
+@pytest.fixture(scope="session")
+def settings(pytestconfig):
+    env = pytestconfig.getoption("--env")
+    return Settings(env)
+
+
+@pytest.fixture(scope="session")
+def base_url(settings):
+    return settings.base_url
