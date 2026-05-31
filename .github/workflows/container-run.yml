@@ -40,7 +40,7 @@ jobs:
           docker ps
           docker logs fc-fastapi-sut
 
-      - name: Verify health endpoint
+      - name: Wait for FastAPI health endpoint
         run: |
           for i in {1..30}; do
             if curl -f http://127.0.0.1:8080/health; then
