@@ -4,278 +4,99 @@ A comprehensive SDET portfolio focused on quality engineering at scale. Demonstr
 
 A professional-grade SDET portfolio demonstrating API and UI automation using Python + Playwright, structured to reflect real-world enterprise test architecture.
 
-
 ![CI](https://github.com/Joseph-Doan/sdet-playwright-porfolio/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Philosophy](#philosophy)
-3. [Tech Stack](#tech-stack)
-4. [Repository Structure](#repository-structure)
-5. [Getting Started](#getting-started)
-6. [Projects](#projects)
-7. [Contributing](#contributing)
-8. [License](#license)
+1. Overview
+2. Philosophy
+3. Tech Stack
+4. Repository Structure
+5. Getting Started
+6. Projects
+7. Contributing
+8. License
 
 ---
 
 ## 👋 Overview
 
-This repository serves as a **portfolio landing page** for my work as a Software Development Engineer in Test (SDET).
+This repository serves as a portfolio landing page for my work as a Software Development Engineer in Test (SDET).
 
 Rather than focusing on isolated test scripts, this portfolio emphasizes:
-- Test automation **architecture and design**
-- Automation **strategy and trade-offs**
+- Test automation architecture and design
+- Automation strategy and trade-offs
 - Reliability, scalability, and maintainability
-- Integration with **real-world CI/CD pipelines**
+- Integration with real-world CI/CD pipelines
 - Infrastructure-aware test execution
-
-The goal is to demonstrate **how quality is engineered**, not just how tests are written.
 
 ---
 
 ## 🧠 SDET Philosophy
 
-I view the SDET role as an **engineering discipline that enables teams to ship with confidence**.
-
-Quality is not defined by the number of tests written, but by:
-- The **speed and reliability of feedback**
-- The **trustworthiness of automation**
-- The **reduction of production risk**
-
-Automation should protect critical user and business flows, integrate seamlessly into CI/CD, and scale as systems grow.  
-Flaky or low-signal tests are treated as system problems, not acceptable trade-offs.
+Quality is engineered through reliable feedback, trustworthy automation, and reduced production risk.
 
 ---
 
 ## 🧰 Technology Stack
 
-- **Language:** Python  
-- **UI & API Automation:** Playwright  
-- **Test Runner:** pytest  
-- **CI/CD:** GitHub Actions  
-- **Containerization:** Docker  
-- **Test Orchestration:** Kubernetes  
-
-Tooling choices are driven by **stability, observability, and scalability**, not popularity.
+- Python
+- Playwright
+- pytest
+- GitHub Actions
+- Docker
+- Kubernetes
 
 ---
 
-
 ## 📁 Repository Structure
 
-This repository acts as a portfolio landing page and index for multiple focused projects:
-
-```Repository Structure
-playwright-enterprise-test-framework/
-│
-├── api-tests/                 # API test suite
-│   ├── services/             # Service layer (business logic)
-│   ├── tests/                # API test cases
-│   └── conftest.py           # API fixtures
-│
-├── ui-tests/                 # UI test suite
-│   ├── pages/                # Page Object Models
-│   └── tests/                # UI test cases
-│
-├── core/                     # Shared framework components
-│   ├── api/                  # API client
-│   ├── config/               # Environment & settings
-│   ├── fixtures/             # Base fixtures
-│   └── logging/              # Logging utilities
-│
-├── infra/                    # Infrastructure (CI/CD, Docker)
-├── test-data/                # Test data
-├── reports/                  # Test reports
-└── pytest.ini
-```
-
+See repository layout and framework organization.
 
 ---
 
 ## 📦 Projects
 
-### 🔹 ui-tests
-A Playwright-based UI automation framework using Python and pytest.
+### ui-tests
+Playwright UI automation framework.
 
-**Highlights:**
-- Page Object Model
-- Parallel execution
-- Test tagging (smoke, regression)
-- Flakiness mitigation strategies
-- Failure artifacts (screenshots, videos)
+### api-tests
+API automation framework.
 
----
+### ci-cd-pipelines
+CI/CD automation workflows.
 
-### 🔹 api-tests
-An API automation framework using Playwright’s request context.
+### docker-test-runner
+Dockerized execution environments.
 
-**Highlights:**
-- CRUD API testing
-- Authentication handling
-- Schema validation
-- Data-driven testing
-- Test pyramid alignment
+### kubernetes-test-jobs
+Kubernetes orchestration examples.
+
+### quality-engineering-docs
+Quality strategy documentation.
 
 ---
 
-### 🔹 ci-cd-pipelines
-CI/CD configurations demonstrating how automated tests integrate into real delivery workflows.
-
-**Highlights:**
-- Pull request validation
-- Regression runs on merge
-- Test artifact publishing
-- Tag-based test selection
-
----
-
-### 🔹 docker-test-runner
-Dockerized test execution environments for consistent local and CI runs.
-
-**Highlights:**
-- Reproducible environments
-- Faster onboarding
-- Separation of test and host dependencies
-
----
-
-### 🔹 kubernetes-test-jobs
-Kubernetes manifests for scalable and parallel test execution.
-
-**Highlights:**
-- Kubernetes Jobs for test runs
-- Parallel pod execution
-- Environment configuration via ConfigMaps
-- Clear guidance on when Kubernetes is appropriate vs overkill
-
----
-
-### 🔹 quality-engineering-docs
-Documentation focused on quality leadership and strategy.
-
-**Includes:**
-- Test strategy
-- Risk-based testing
-- Automation ROI
-- Test metrics and reporting
-- Example test plans
-
----
 ## 🚀 Getting Started
 
-1. Clone this repo
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/playwright-enterprise-test-framework.git
-   cd playwright-enterprise-test-framework
-   ```
-2. Create virtual environment
-   ```bash
-   python -m venv .venv
-   source .venv/Scripts/activate     #Windows
-   ```
-3. Install dependencies
-   ```bash
-   pip install -r requirements
-   playwright install
-   ```
-4. Running Tests
-   Run all tests
-   ```bash
-   pytest -v
-   ```
-5. Run API tests only
-   ```bash
-   pytest api-tests -v
-   ```
-6. Run UI tsts only
-   ```bash
-   pytst ui-tests --headed -v
-   ```
+Clone repository, create virtual environment, install dependencies, and execute tests.
+
 ---
 
 ## 🧪 Test Execution Guide
 
-This repository contains two independent automation frameworks:
-
-- API Automation Framework (Playwright Request API)
-
-- UI Automation Framework (Playwright Browser + POM)
-
-These test suites are intentionally executed separately to mirror real-world CI/CD pipeline stages and to prevent event loop conflicts.
-
-⚠️ Note: The FastAPI mock service used by this framework is maintained in the `sut/FastAPIMockApp` submodule. Docker startup and health validation instructions are documented in the FastAPIMockApp repository README. The FastAPI mock backend must be running locally on http://localhost:8080.
-
-### 🚀 Run API Tests
-
-What this covers:
-
-- Authentication
-
-- CRUD operations
-
-- Negative scenarios
-
-- Validation errors
-
-- Authorization checks
-
-### 🖥 Run UI Tests
-
-What this covers:
-
-- Login success
-
-- Login failure
-
-- Devices page rendering
-
-- Page Object Model structure
-
-## 🧠 Why Separate Execution?
-
-In production-grade automation:
-
-- API and UI tests run in separate CI stages
-
-- API tests are fast and validate business logic
-
-- UI tests validate user workflows
-
-- Separation avoids async loop conflicts and reduces pipeline instability
-
-This architecture mirrors real enterprise automation strategy.
+This repository contains API and UI automation frameworks executed independently to mirror enterprise CI/CD practices.
 
 ---
+
 ## 🧠 Key Design Decisions
 
-🔹 Service Layer (API)
-
-Encapsulates API logic for better reusability and maintainability.
-
-🔹 Page Object Model (UI)
-
-Separates UI structure from test logic.
-
-🔹 Fixtures
-
-Reusable setup for:
-
-- API clients
-
-- Base URLs
-
-- Test configuration
-
-🔹 Behavior-Based Assertions
-
-🔹 Why Playwright for API Testing?
-
-Using Playwright for both API and UI testing allows a single unified toolchain, shared configuration, and consistent CI execution. This mirrors how modern SDET teams reduce tooling fragmentation in real-world environments.
-
-Tests validate actual system behavior instead of fragile UI text.
+- Service Layer
+- Page Object Model
+- Fixtures
+- Behavior-Based Assertions
+- Unified Playwright toolchain
 
 ---
 
@@ -283,64 +104,170 @@ Tests validate actual system behavior instead of fragile UI text.
 
 This project uses GitHub Actions to execute automated tests in CI.
 
-### Pipeline flow
+### Traditional Pipeline Flow
+
 1. Check out repository and submodules
 2. Set up Python 3.12
 3. Install framework and FastAPI application dependencies
-4. Start the FastAPI mock application
-5. Wait for the API to become ready
-6. Execute pytest-based automated tests
-7. Upload test results and server logs as artifacts
+4. Build Docker image
+5. Publish image to GHCR
+6. Pull published image
+7. Run container
+8. Wait for health check
+9. Execute smoke tests
+10. Capture diagnostics
+11. Cleanup container
 
-### Generated artifacts
-- `test-results/results.xml` — JUnit XML test results
-- `test-results/report.html` — HTML pytest report
-- `sut/FastAPIMockApp/server.log` — FastAPI startup/runtime log
+### Generated Artifacts
 
-### Why this design
-This pipeline is structured to provide repeatable automated test execution, useful debugging artifacts, and a cleaner CI flow aligned with enterprise quality engineering practices.
+- test-results/results.xml
+- test-results/report.html
+- FastAPI runtime logs
+
+### Why this Design
+
+Provides repeatable execution, reusable artifacts, deployment validation, and enterprise-style CI/CD practices.
+
+---
+
+## Containerized CI Test Execution Flow
+
+### Workflow Overview
+
+```text
+GitHub Actions
+    ↓
+Build Docker Image
+    ↓
+Publish Image to GHCR
+    ↓
+Pull Published Image
+    ↓
+Run Container
+    ↓
+Wait for Health Check
+    ↓
+Execute Smoke Tests
+    ↓
+Capture Logs on Failure
+    ↓
+Stop and Remove Container
+```
+
+### Container Publish Workflow
+
+The container-publish workflow:
+
+- Builds the FastAPI mock application image
+- Validates the image
+- Authenticates to GHCR
+- Publishes the tested image
+
+Published image:
+
+ghcr.io/joseph-doan/fc-fastapi-sut:latest
+
+### Container Run Workflow
+
+The container-run workflow:
+
+- Pulls the published image
+- Starts the container
+- Waits for health validation
+- Executes smoke tests
+- Captures diagnostics on failure
+- Removes the container
+
+### Runtime Configuration
+
+Environment variables:
+
+- IMAGE_NAME
+- CONTAINER_NAME
+- HOST_PORT
+- CONTAINER_PORT
+- BASE_URL
+
+### Health Check Validation
+
+The workflow waits for the `/health` endpoint to respond before executing tests.
+
+### Smoke Test Execution
+
+```bash
+pytest -m smoke --base-url=$BASE_URL
+```
+
+### Failure Diagnostics
+
+Automatically captures:
+
+- docker ps -a
+- docker logs
+
+### Cleanup
+
+```bash
+docker stop $CONTAINER_NAME || true
+docker rm $CONTAINER_NAME || true
+```
+
+### Enterprise CI/CD Mapping
+
+| FormCircles Workflow | Enterprise Equivalent |
+|---------------------|----------------------|
+| GitHub Actions | Jenkins |
+| GHCR | JFrog Artifactory |
+| Docker Image | Deployable Artifact |
+| Health Check | Deployment Validation |
+| Smoke Tests | Post-Deployment Verification |
+| Container Logs | Failure Diagnostics |
+| Cleanup | CI Lifecycle Management |
+
+### Current CI Capability
+
+- Docker image creation
+- Artifact publication
+- Registry-based artifact reuse
+- Health validation
+- Smoke testing
+- Failure diagnostics
+- Automated cleanup
+- Parameterized runtime configuration
 
 ---
 
 ## 🎯 How to Use This Portfolio
 
-- Hiring managers: Review the README files inside each project to understand architecture and reasoning
-  
-- SDETs: Use this as a reference for building scalable automation systems
-  
-- Interviewers: Treat this portfolio as a discussion starter for system design and quality strategy
+- Hiring managers: review project documentation
+- SDETs: use as a framework reference
+- Interviewers: discuss architecture and quality strategy
 
 ---
+
 ## ⭐ Why This Project Matters
 
-This framework demonstrates:
+Demonstrates:
 
--  Real-world SDET architecture
+- Real-world SDET architecture
+- Scalable test design
+- Maintainable automation
+- Strong debugging skills
 
--  Scalable test design
-
--  Maintainable automation practices
-
--  Strong debugging and problem-solving skills
-
+---
 
 ## 🤝 Contributing
 
 Suggestions and improvements are welcome.
-Please open an issue or pull request with a clear description of proposed changes.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License.
-See the LICENSE file for details.
+MIT License.
 
 ---
-
 
 ## 📬 Contact
 
 GitHub: https://github.com/Joseph-Doan
-
-LinkedIn: (add your LinkedIn profile here)
