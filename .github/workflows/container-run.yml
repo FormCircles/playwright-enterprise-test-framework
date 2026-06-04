@@ -73,6 +73,9 @@ jobs:
           pip install -r requirements.txt
           playwright install --with-deps
 
+      - name: Create test results directory
+        run: mkdir -p test-results
+
       - name: Execute smoke tests against running container
         run: |
           pytest -m smoke \
@@ -84,9 +87,9 @@ jobs:
       - name: Capture container logs on test failure
         if: failure()
         run: |
-          echo "Smoke test failure detected. Capturing FastAPI container logs..."
-          docker ps -a
-          docker logs $CONTAINER_NAME || true
+          mkdir -p test-results/logs
+          docker ps -a > test-results/logs/docker-ps.txt
+          docker logs $CONTAINER_NAME > test-results/logs/fastapi-container.log 2>&1
 
       - name: Upload smoke test artifacts
         if: always()
