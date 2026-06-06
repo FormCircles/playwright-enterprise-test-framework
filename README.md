@@ -237,6 +237,90 @@ docker rm $CONTAINER_NAME || true
 
 ---
 
+## Local Container Development
+
+The FastAPI Mock Application can be built and executed locally using Docker.
+
+### Build Container Image
+
+From the FastAPIMockApp repository:
+
+```bash
+docker build -t fastapi-mock-enterprise-app .
+```
+
+### Run Container
+
+```bash
+docker run -d \
+  --name fastapi-test \
+  -p 8080:8080 \
+  fastapi-mock-enterprise-app
+```
+
+### Verify Container Status
+
+```bash
+docker ps
+```
+
+Expected output:
+
+```text
+STATUS
+Up 20 seconds (healthy)
+```
+
+### Verify Health Endpoint
+
+Open a browser or use curl:
+
+```bash
+curl http://localhost:8080/health
+```
+
+Expected response:
+
+```json
+{
+  "status": "healthy"
+}
+```
+
+### View Container Logs
+
+```bash
+docker logs fastapi-test
+```
+
+### Stop and Remove Container
+
+```bash
+docker stop fastapi-test && docker rm fastapi-test
+```
+
+### Port Mapping
+
+| Host Port | Container Port |
+| --------- | -------------- |
+| 8080      | 8080           |
+
+Application URL:
+
+```text
+http://localhost:8080
+```
+
+Health Endpoint:
+
+```text
+http://localhost:8080/health
+```
+
+The container includes a Docker HEALTHCHECK that continuously validates the FastAPI `/health` endpoint and reports container health status through Docker.
+
+---
+
 ## 🎯 How to Use This Portfolio
 
 - Hiring managers: review project documentation
