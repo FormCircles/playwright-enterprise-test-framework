@@ -6,6 +6,7 @@ from playwright.sync_api import APIRequestContext, Playwright
 from api_tests.services.devices_service import DevicesService
 from api_tests.services.health_service import HealthService
 from core.api.api_client import APIClient
+import os
 
 
 @pytest.fixture(scope="session")
@@ -19,8 +20,11 @@ def api_request_context(
     Base URL is configured here so service/client calls can use relative paths
     like '/api/login' and '/health'.
     """
+
+    resolved_base_url = os.getenv("BASE_URL", base_url)
+
     context = playwright.request.new_context(
-        base_url=base_url,
+        base_url=resolved_base_url,
         extra_http_headers={
             "Accept": "application/json",
         },
