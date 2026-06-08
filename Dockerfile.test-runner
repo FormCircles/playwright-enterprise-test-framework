@@ -16,4 +16,6 @@ RUN playwright install --with-deps
 
 COPY . .
 
-CMD ["pytest", "-m", "smoke"]
+RUN chmod +x scripts/run-tests.sh
+
+ENTRYPOINT ["scripts/run-tests.sh"]
