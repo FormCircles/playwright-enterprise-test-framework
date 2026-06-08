@@ -18,4 +18,6 @@ COPY . .
 
 RUN chmod +x scripts/run-tests.sh
 
+VOLUME ["/reports"]
+
 ENTRYPOINT ["scripts/run-tests.sh"]

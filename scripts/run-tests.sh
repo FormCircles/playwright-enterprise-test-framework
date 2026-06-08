@@ -1,31 +1,30 @@
 #!/usr/bin/env bash
 set -e
 
+REPORT_DIR="${REPORT_DIR:-/reports}"
+
+mkdir -p "$REPORT_DIR"
+
 TEST_SUITE="${TEST_SUITE:-smoke}"
 BASE_URL="${BASE_URL:-http://127.0.0.1:8080}"
 
-echo "Running test suite: $TEST_SUITE"
-echo "Using BASE_URL: $BASE_URL"
-
 case "$TEST_SUITE" in
   smoke)
-    pytest -m smoke --base-url="$BASE_URL"
+    pytest -m smoke \
+      --base-url="$BASE_URL" \
+      --junitxml="$REPORT_DIR/smoke-junit-results.xml" \
+      --html="$REPORT_DIR/smoke-report.html" \
+      --self-contained-html
     ;;
   api)
-    pytest api_tests/tests -m api --base-url="$BASE_URL"
-    ;;
-  ui)
-    pytest ui_tests/tests -m ui --base-url="$BASE_URL"
-    ;;
-  regression)
-    pytest -m regression --base-url="$BASE_URL"
-    ;;
-  all)
-    pytest --base-url="$BASE_URL"
+    pytest api_tests/tests \
+      --base-url="$BASE_URL" \
+      --junitxml="$REPORT_DIR/api-junit-results.xml" \
+      --html="$REPORT_DIR/api-report.html" \
+      --self-contained-html
     ;;
   *)
-    echo "Unknown TEST_SUITE: $TEST_SUITE"
-    echo "Supported values: smoke, api, ui, regression, all"
+    echo "Unknown suite"
     exit 1
     ;;
 esac
