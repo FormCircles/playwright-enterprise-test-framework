@@ -1,0 +1,15 @@
+services:
+  fastapi:
+    build:
+      context: ./sut/FastAPIMockApp
+      dockerfile: Dockerfile
+    image: fastapi-mock-enterprise-app:local
+    container_name: fc-fastapi-local
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
