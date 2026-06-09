@@ -13,3 +13,19 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test-runner
+    image: fc-playwright-test-runner:local
+    container_name: fc-test-runner-local
+    depends_on:
+      fastapi:
+        condition: service_healthy
+    environment:
+      BASE_URL: http://fastapi:8080
+      TEST_SUITE: smoke
+      REPORT_DIR: /reports
+    volumes:
+      - ./reports:/reports
