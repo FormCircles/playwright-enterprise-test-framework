@@ -127,3 +127,14 @@ jobs:
           if [ -f sut/FastAPIMockApp/uvicorn.pid ]; then
             kill $(cat sut/FastAPIMockApp/uvicorn.pid) || true
           fi
+
+      - name: Notify Pumble - CI finished
+        if: always()
+        continue-on-error: true
+        run: |
+          STATUS="${{ job.status }}"
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          curl -X POST "${{ secrets.PUMBLE_CI_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"text\":\"🏁 CI finished | Result: ${STATUS} | Repo: ${{ github.repository }} | Branch: ${{ github.ref_name }} | Run: ${RUN_URL}\"}"
