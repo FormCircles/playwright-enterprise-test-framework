@@ -10,7 +10,8 @@ permissions:
   packages: read
 
 env:
-  IMAGE_NAME: ghcr.io/joseph-doan/fc-fastapi-sut:latest
+  REGISTRY: ghcr.io
+  IMAGE_REPO: fc-fastapi-sut
   CONTAINER_NAME: fc-fastapi-sut
   HOST_PORT: 8080
   CONTAINER_PORT: 8080
@@ -23,6 +24,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set published image name
+        run: |
+          OWNER_LC=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_NAME=${REGISTRY}/${OWNER_LC}/${IMAGE_REPO}:latest" >> $GITHUB_ENV
 
       - name: Notify Pumble - CI started
         continue-on-error: true
@@ -95,8 +101,8 @@ jobs:
         if: failure()
         run: |
           mkdir -p test-results/logs
-          docker ps -a > test-results/logs/docker-ps.txt
-          docker logs $CONTAINER_NAME > test-results/logs/fastapi-container.log 2>&1
+          docker ps -a > test-results/logs/docker-ps.txt || true
+          docker logs $CONTAINER_NAME > test-results/logs/fastapi-container.log 2>&1 || true
 
       - name: Upload smoke test artifacts
         if: always()
@@ -111,7 +117,7 @@ jobs:
           echo "Cleaning up FastAPI container..."
           docker stop $CONTAINER_NAME || true
           docker rm $CONTAINER_NAME || true
-          docker ps -a
+          docker ps -a || true
 
       - name: Notify Pumble - CI finished
         if: always()
