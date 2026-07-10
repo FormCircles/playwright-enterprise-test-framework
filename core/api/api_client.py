@@ -45,3 +45,16 @@ class APIClient:
             path,
             headers=self._headers(),
         )
+
+    def set_auth_token(self, auth_token: str) -> None:
+        self.auth_token = auth_token
+
+    def clear_auth_token(self) -> None:
+        self.auth_token = None
+
+    def patch(self, path: str, data: Optional[dict[str, Any]] = None):
+        return self.request_context.patch(
+            path,
+            data=data,
+            headers=self._headers(),
+        )
