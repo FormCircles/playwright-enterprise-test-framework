@@ -10,7 +10,8 @@ permissions:
   packages: read
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/fc-fastapi-sut:latest
+  REGISTRY: ghcr.io
+  IMAGE_REPO: fc-fastapi-sut
   CONTAINER_NAME: fc-fastapi-sut
   HOST_PORT: 8080
   CONTAINER_PORT: 8080
@@ -23,6 +24,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set published image name
+        run: |
+          OWNER_LC=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_NAME=${REGISTRY}/${OWNER_LC}/${IMAGE_REPO}:latest" >> $GITHUB_ENV
 
       - name: Notify Pumble - CI started
         continue-on-error: true
