@@ -101,8 +101,8 @@ jobs:
         if: failure()
         run: |
           mkdir -p test-results/logs
-          docker ps -a > test-results/logs/docker-ps.txt
-          docker logs $CONTAINER_NAME > test-results/logs/fastapi-container.log 2>&1
+          docker ps -a > test-results/logs/docker-ps.txt || true
+          docker logs $CONTAINER_NAME > test-results/logs/fastapi-container.log 2>&1 || true
 
       - name: Upload smoke test artifacts
         if: always()
@@ -117,7 +117,7 @@ jobs:
           echo "Cleaning up FastAPI container..."
           docker stop $CONTAINER_NAME || true
           docker rm $CONTAINER_NAME || true
-          docker ps -a
+          docker ps -a || true
 
       - name: Notify Pumble - CI finished
         if: always()
