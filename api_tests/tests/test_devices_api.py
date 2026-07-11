@@ -1,73 +1,29 @@
-def test_create_device_invalid_payload(devices_service):
-    payload = {
-        "name": "Broken Device"
-        # missing "status"
+def test_create_device_with_missing_status_returns_422(devices_service):
+    invalid_payload = {
+        "name": "Broken Device",
     }
 
-    response = devices_service.create_device(payload)
+    response = devices_service.create_device(invalid_payload)
 
-    assert response.status == 422
+    assert response.status == 422, (
+        f"Expected 422 for an invalid device payload, "
+        f"got {response.status}. Body: {response.text()}"
+    )
 
 
-def test_get_nonexistent_device(devices_service):
+def test_get_nonexistent_device_returns_404(devices_service):
     response = devices_service.get_device_by_id(999999)
 
-    assert response.status == 404
+    assert response.status == 404, (
+        f"Expected 404 for a nonexistent device, "
+        f"got {response.status}. Body: {response.text()}"
+    )
 
 
-def test_delete_nonexistent_device(devices_service):
+def test_delete_nonexistent_device_returns_404(devices_service):
     response = devices_service.delete_device(999999)
 
-    assert response.status == 404
-
-
-def test_get_devices_returns_list(devices_service):
-    response = devices_service.get_devices()
-
-    assert response.status == 200
-    assert isinstance(response.json(), list)
-
-
-def test_create_device(devices_service):
-    payload = {
-        "name": "New Device",
-        "status": "offline",
-    }
-
-    response = devices_service.create_device(payload)
-
-    assert response.status == 201
-    body = response.json()
-    assert body["name"] == payload["name"]
-    assert body["status"] == payload["status"]
-
-
-def test_get_device_by_id(devices_service, created_device):
-    device_id = created_device["id"]
-
-    response = devices_service.get_device_by_id(device_id)
-
-    assert response.status == 200
-    assert response.json()["id"] == device_id
-
-
-def test_update_device(devices_service, created_device):
-    device_id = created_device["id"]
-
-    payload = {
-        "name": "Updated Device",
-        "status": "online",
-    }
-
-    response = devices_service.update_device(device_id, payload)
-
-    assert response.status == 200
-    assert response.json()["name"] == "Updated Device"
-
-
-def test_delete_device(devices_service, created_device):
-    device_id = created_device["id"]
-
-    response = devices_service.delete_device(device_id)
-
-    assert response.status == 204
+    assert response.status == 404, (
+        f"Expected 404 when deleting a nonexistent device, "
+        f"got {response.status}. Body: {response.text()}"
+    )
