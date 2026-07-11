@@ -1,23 +1,19 @@
 from __future__ import annotations
+
 import pytest
 
 
-def test_get_devices(devices_service):
-    """
-    Validate that the devices endpoint returns a successful response
-    and a JSON list payload.
-    """
+def test_get_devices_returns_list(devices_service):
     response = devices_service.get_devices()
 
     assert response.status == 200, (
-        f"Expected 200 from /api/devices, got {response.status}. "
+        f"Expected 200 when listing devices, got {response.status}. "
         f"Body: {response.text()}"
     )
 
-    payload = response.json()
-
-    assert isinstance(payload, list), (
-        f"Expected list response from /api/devices, got: {payload}"
+    devices = response.json()
+    assert isinstance(devices, list), (
+        f"Expected device collection to be a list, got: {devices}"
     )
 
 
@@ -26,7 +22,6 @@ def test_get_devices(devices_service):
 def test_create_device(devices_service):
     payload = {
         "name": "Test Device",
-        "type": "sensor",
         "status": "active",
     }
 
@@ -37,88 +32,63 @@ def test_create_device(devices_service):
         f"Body: {response.text()}"
     )
 
-    body = response.json()
+    created_device = response.json()
 
-    assert "id" in body, f"Expected created device to include id. Body: {body}"
-    assert body["name"] == payload["name"]
-    assert body["status"] == payload["status"]
+    assert "id" in created_device
+    assert created_device["name"] == payload["name"]
+    assert created_device["status"] == payload["status"]
 
 
-def test_get_device_by_id(devices_service):
-    create_payload = {
-        "name": "Lookup Device",
-        "type": "sensor",
-        "status": "active",
-    }
-
-    create_response = devices_service.create_device(create_payload)
-    assert create_response.status == 201, create_response.text()
-
-    created = create_response.json()
-    device_id = created["id"]
+def test_get_device_by_id(devices_service, created_device):
+    device_id = created_device["id"]
 
     response = devices_service.get_device_by_id(device_id)
 
     assert response.status == 200, (
-        f"Expected 200 when fetching device by id, got {response.status}. "
-        f"Body: {response.text()}"
+        f"Expected 200 when retrieving device {device_id}, "
+        f"got {response.status}. Body: {response.text()}"
     )
 
-    body = response.json()
-    assert body["id"] == device_id
-    assert body["name"] == create_payload["name"]
+    retrieved_device = response.json()
+
+    assert retrieved_device["id"] == device_id
+    assert retrieved_device["name"] == created_device["name"]
 
 
-def test_update_device(devices_service):
-    create_payload = {
-        "name": "Old Device",
-        "type": "sensor",
-        "status": "active",
-    }
-
-    create_response = devices_service.create_device(create_payload)
-    assert create_response.status == 201, create_response.text()
-
-    created = create_response.json()
-    device_id = created["id"]
+def test_update_device(devices_service, created_device):
+    device_id = created_device["id"]
 
     update_payload = {
         "name": "Updated Device",
-        "type": "sensor",
         "status": "inactive",
     }
 
     response = devices_service.update_device(device_id, update_payload)
 
     assert response.status == 200, (
-        f"Expected 200 when updating device, got {response.status}. "
-        f"Body: {response.text()}"
+        f"Expected 200 when updating device {device_id}, "
+        f"got {response.status}. Body: {response.text()}"
     )
 
-    body = response.json()
-    assert body["id"] == device_id
-    assert body["name"] == update_payload["name"]
-    assert body["status"] == update_payload["status"]
+    updated_device = response.json()
+
+    assert updated_device["id"] == device_id
+    assert updated_device["name"] == update_payload["name"]
+    assert updated_device["status"] == update_payload["status"]
 
 
-def test_delete_device(devices_service):
-    create_payload = {
-        "name": "Delete Device",
-        "type": "sensor",
-        "status": "active",
-    }
-
-    create_response = devices_service.create_device(create_payload)
-    assert create_response.status == 201, create_response.text()
-
-    created = create_response.json()
-    device_id = created["id"]
+def test_delete_device(devices_service, created_device):
+    device_id = created_device["id"]
 
     delete_response = devices_service.delete_device(device_id)
 
-    assert delete_response.status in {200, 204}, (
-        f"Expected 200 or 204 when deleting device, got {delete_response.status}. "
-        f"Body: {delete_response.text()}"
+    assert delete_response.status == 204, (
+        f"Expected 204 when deleting device {device_id}, "
+        f"got {delete_response.status}. Body: {delete_response.text()}"
     )
 
-
+    get_response = devices_service.get_device_by_id(device_id)
+    assert get_response.status == 404, (
+        f"Expected deleted device {device_id} to return 404, "
+        f"got {get_response.status}."
+    )
