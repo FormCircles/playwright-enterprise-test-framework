@@ -19,11 +19,8 @@ def test_get_devices_returns_list(devices_service):
 
 @pytest.mark.regression
 @pytest.mark.api
-def test_create_device(devices_service):
-    payload = {
-        "name": "Test Device",
-        "status": "active",
-    }
+def test_create_device(devices_service, device_factory):
+    payload = device_factory()
 
     response = devices_service.create_device(payload)
 
@@ -55,13 +52,9 @@ def test_get_device_by_id(devices_service, created_device):
     assert retrieved_device["name"] == created_device["name"]
 
 
-def test_update_device(devices_service, created_device):
+def test_update_device(devices_service, created_device, device_factory):
     device_id = created_device["id"]
-
-    update_payload = {
-        "name": "Updated Device",
-        "status": "inactive",
-    }
+    update_payload = device_factory(status="inactive")
 
     response = devices_service.update_device(device_id, update_payload)
 
@@ -75,6 +68,42 @@ def test_update_device(devices_service, created_device):
     assert updated_device["id"] == device_id
     assert updated_device["name"] == update_payload["name"]
     assert updated_device["status"] == update_payload["status"]
+
+
+def test_create_device_without_name_returns_validation_error(
+    devices_service,
+    device_factory,
+):
+    payload = device_factory()
+    payload.pop("name")
+
+    response = devices_service.create_device(payload)
+
+    assert response.status == 422
+
+
+'''
+def test_create_device_with_invalid_status_returns_validation_error(
+    devices_service,
+    device_factory,
+):
+    payload = device_factory(status="unsupported")
+
+    response = devices_service.create_device(payload)
+
+    assert response.status == 422
+
+
+def test_create_device_with_empty_name(
+    devices_service,
+    device_factory,
+):
+    payload = device_factory(name="")
+
+    response = devices_service.create_device(payload)
+
+    assert response.status == 422
+'''
 
 
 def test_delete_device(devices_service, created_device):

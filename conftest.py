@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 
 import pytest
@@ -9,6 +11,28 @@ from core.fixtures.api_fixtures import *
 from core.fixtures.base_fixtures import *
 from core.fixtures.data_fixtures import *
 from core.fixtures.ui_fixtures import *
+
+from collections.abc import Callable
+from typing import Any
+from uuid import uuid4
+
+import pytest
+
+
+@pytest.fixture
+def device_factory() -> Callable[..., dict[str, Any]]:
+    """Create unique device payloads with optional field overrides."""
+
+    def _create_device_payload(**overrides: Any) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "name": f"Test Device {uuid4().hex[:8]}",
+            "status": "active",
+        }
+
+        payload.update(overrides)
+        return payload
+
+    return _create_device_payload
 
 
 @pytest.fixture(scope="session")
