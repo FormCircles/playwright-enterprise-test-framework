@@ -19,7 +19,11 @@ def test_get_devices_returns_list(devices_service):
 
 @pytest.mark.regression
 @pytest.mark.api
-def test_create_device(devices_service, device_factory):
+def test_create_device(
+    devices_service,
+    device_factory,
+    device_cleanup,
+):
     payload = device_factory()
 
     response = devices_service.create_device(payload)
@@ -30,6 +34,7 @@ def test_create_device(devices_service, device_factory):
     )
 
     created_device = response.json()
+    device_cleanup(created_device)
 
     assert "id" in created_device
     assert created_device["name"] == payload["name"]
