@@ -1,34 +1,32 @@
+from __future__ import annotations
+
+from collections.abc import Callable
+from typing import Any
+from uuid import uuid4
+
 import pytest
-import time
 
 
 @pytest.fixture
-def created_device(api_request_context, base_url, auth_header):
-    """
-    Creates a device before test and cleans it up after.
-    """
+def created_device(devices_service, device_factory):
+    """Create a device for a test and clean it up afterward."""
 
-    payload = {
-        "name": f"test-device-{int(time.time())}",
-        "status": "offline"
-    }
+    payload = device_factory()
+    response = devices_service.create_device(payload)
 
-    # CREATE
-    response = api_request_context.post(
-        f"{base_url}/api/devices",
-        data=payload,
-        headers=auth_header
+    assert response.status == 201, (
+        f"Failed to create device fixture. "
+        f"Status: {response.status}. Body: {response.text()}"
     )
 
-    assert response.status == 201, response.text()
-
     device = response.json()
-    device_id = device["id"]
 
     yield device
 
-    # CLEANUP
-    api_request_context.delete(
-        f"{base_url}/api/devices/{device_id}",
-        headers=auth_header
+    cleanup_response = devices_service.delete_device(device["id"])
+
+    assert cleanup_response.status in {204, 404}, (
+        f"Failed to clean up device {device['id']}. "
+        f"Status: {cleanup_response.status}. "
+        f"Body: {cleanup_response.text()}"
     )
