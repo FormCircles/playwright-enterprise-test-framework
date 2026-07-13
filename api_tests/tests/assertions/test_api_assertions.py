@@ -1,4 +1,5 @@
 from __future__ import annotations
+from core.assertions.api_assertions import assert_matches_schema
 
 from unittest.mock import Mock
 
@@ -107,3 +108,45 @@ def test_assert_error_response_returns_body():
     )
 
     assert body["detail"] == "Validation failed"
+
+
+def test_assert_matches_schema_accepts_valid_payload():
+    schema = {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+            "id": {"type": "integer"},
+            "name": {"type": "string"},
+        },
+        "additionalProperties": False,
+    }
+
+    payload = {
+        "id": 1,
+        "name": "Device",
+    }
+
+    assert_matches_schema(payload, schema)
+
+
+def test_assert_matches_schema_reports_invalid_payload():
+    schema = {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+            "id": {"type": "integer"},
+        },
+        "additionalProperties": False,
+    }
+
+    payload = {
+        "id": "not-an-integer",
+    }
+
+    with pytest.raises(AssertionError) as error:
+        assert_matches_schema(payload, schema)
+
+    message = str(error.value)
+
+    assert "does not match" in message
+    assert "not of type" in message

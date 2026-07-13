@@ -6,3 +6,4 @@ python-dotenv
 pytest-html
 pygments
 PyYAML
+jsonschema>=4.23,<5
