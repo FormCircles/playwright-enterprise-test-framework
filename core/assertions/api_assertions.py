@@ -1,4 +1,5 @@
 from __future__ import annotations
+from jsonschema import ValidationError, validate
 
 from collections.abc import Iterable
 from typing import Any
@@ -70,3 +71,24 @@ def assert_success_response(
         assert_required_fields(body, required_fields)
 
     return body
+
+def assert_matches_schema(
+    payload: Any,
+    schema: dict[str, Any],
+) -> None:
+    """Assert that a JSON payload matches the expected JSON Schema."""
+
+    try:
+        validate(instance=payload, schema=schema)
+    except ValidationError as error:
+        location = (
+            " -> ".join(str(part) for part in error.absolute_path)
+            or "<root>"
+        )
+
+        raise AssertionError(
+            "Response payload does not match the expected schema. "
+            f"Location: {location}. "
+            f"Reason: {error.message}. "
+            f"Payload: {payload}"
+        ) from error
