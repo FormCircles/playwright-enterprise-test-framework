@@ -12,6 +12,7 @@ from core.schemas.device_schemas import (
     DEVICE_DETAIL_SCHEMA,
     DEVICE_LIST_SCHEMA,
 )
+from core.test_data import InvalidDeviceFactory
 
 
 def test_get_devices_returns_list(devices_service):
@@ -104,8 +105,7 @@ def test_create_device_without_name_returns_validation_error(
     devices_service,
     device_factory,
 ):
-    payload = device_factory()
-    payload.pop("name")
+    payload = InvalidDeviceFactory.missing_name()
 
     response = devices_service.create_device(payload)
 
@@ -122,7 +122,7 @@ def test_create_device_with_invalid_status_returns_validation_error(
     devices_service,
     device_factory,
 ):
-    payload = device_factory(status="unsupported")
+    payload = InvalidDeviceFactory.missing_status()
 
     response = devices_service.create_device(payload)
 
