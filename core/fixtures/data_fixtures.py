@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from typing import Any
-from uuid import uuid4
 
 import pytest
+
 
 @pytest.fixture
 def created_device(
