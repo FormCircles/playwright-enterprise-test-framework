@@ -7,5 +7,11 @@ local:
 ci:
   base_url: http://127.0.0.1:8080
 
+docker:
+  base_url: http://app:8080
+
+k8s:
+  base_url: http://fastapi-mock-app:8080
+
 staging:
   base_url: https://staging.api.formcircles.com
