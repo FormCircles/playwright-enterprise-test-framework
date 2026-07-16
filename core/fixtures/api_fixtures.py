@@ -5,61 +5,60 @@ from playwright.sync_api import APIRequestContext, Playwright
 
 from api_tests.services.devices_service import DevicesService
 from api_tests.services.health_service import HealthService
+from api_tests.services.test_admin_service import TestAdminService
 from core.api.api_client import APIClient
-import os
 
 
 @pytest.fixture(scope="session")
 def api_request_context(
-        playwright: Playwright,
-        base_url: str,
+    playwright: Playwright,
+    base_url: str,
+    settings,
 ) -> APIRequestContext:
-    """
-    Shared Playwright API request context for the test session.
+    """Create a reusable Playwright API request context."""
 
-    Base URL is configured here so service/client calls can use relative paths
-    like '/api/login' and '/health'.
-    """
-
-    resolved_base_url = os.getenv("BASE_URL", base_url)
-
-    context = playwright.request.new_context(
-        base_url=resolved_base_url,
-        extra_http_headers={
-            "Accept": "application/json",
-        },
+    return playwright.request.new_context(
+        base_url=base_url,
+        timeout=settings.request_timeout_ms,
     )
-    yield context
-    context.dispose()
 
 
 @pytest.fixture(scope="session")
-def auth_token(api_request_context: APIRequestContext) -> str:
-    """
-    Authenticate once per session and return a bearer token.
+def auth_token(
+    api_request_context: APIRequestContext,
+    test_username: str,
+    test_password: str,
+) -> str:
+    """Authenticate once and return a bearer token."""
 
-    Adjust username/password if your mock app uses different credentials.
-    """
+    if not test_password:
+        raise RuntimeError(
+            "TEST_PASSWORD is required for authenticated tests."
+        )
+
     response = api_request_context.post(
         "/api/login",
         data={
-            "username": "admin",
-            "password": "password",
+            "username": test_username,
+            "password": test_password,
         },
     )
 
-    assert response.ok, (
-        f"Login failed. Status: {response.status}\n"
+    assert response.status == 200, (
+        f"Login failed. Status: {response.status}. "
         f"Response: {response.text()}"
     )
 
-    payload = response.json()
+    return response.json()["access_token"]
 
-    assert "access_token" in payload, (
-        f"Login response missing access_token. Payload: {payload}"
-    )
 
-    return payload["access_token"]
+@pytest.fixture(scope="session")
+def auth_header(auth_token: str) -> dict[str, str]:
+    """Return a reusable authorization header."""
+
+    return {
+        "Authorization": f"Bearer {auth_token}",
+    }
 
 
 @pytest.fixture(scope="session")
@@ -67,23 +66,30 @@ def api_client(
     api_request_context: APIRequestContext,
     auth_token: str,
 ) -> APIClient:
-    """
-    Reusable authenticated API client.
-    """
-    return APIClient(api_request_context, auth_token=auth_token)
+    """Return an authenticated API client."""
+
+    return APIClient(
+        request_context=api_request_context,
+        auth_token=auth_token,
+    )
 
 
 @pytest.fixture
 def devices_service(api_client: APIClient) -> DevicesService:
-    """
-    Domain service fixture for device-related API operations.
-    """
+    """Return the device API service."""
+
     return DevicesService(api_client)
 
 
 @pytest.fixture
 def health_service(api_client: APIClient) -> HealthService:
-    """
-    Domain service fixture for health endpoint validation.
-    """
+    """Return the health API service."""
+
     return HealthService(api_client)
+
+
+@pytest.fixture(scope="session")
+def test_admin_service(api_client: APIClient) -> TestAdminService:
+    """Return the backend test-administration service."""
+
+    return TestAdminService(api_client)

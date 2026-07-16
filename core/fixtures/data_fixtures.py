@@ -5,6 +5,15 @@ from typing import Any
 
 import pytest
 
+from core.test_data.device_factory import DeviceFactory
+
+
+@pytest.fixture
+def device_factory() -> Callable[..., dict[str, Any]]:
+    """Expose the reusable device payload factory."""
+
+    return DeviceFactory.create
+
 
 @pytest.fixture
 def created_device(
