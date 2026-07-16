@@ -18,6 +18,10 @@ from typing import Any
 import pytest
 
 from core.test_data.device_factory import DeviceFactory
+from api_tests.services.test_admin_service import TestAdminService
+
+from core.cleanup.backend_reset import evaluate_reset_response
+from core.environment import assert_reset_allowed
 
 
 @pytest.fixture
@@ -99,3 +103,36 @@ def settings(pytestconfig):
 @pytest.fixture(scope="session")
 def base_url(settings):
     return settings.base_url
+
+def pytest_sessionfinish(session, exitstatus):
+    """Reserved for optional backend reset integration."""
+
+
+@pytest.fixture(scope="session")
+def test_admin_service(api_client):
+    """Provide access to non-production backend test utilities."""
+
+    return TestAdminService(api_client)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def reset_backend_after_test_session(
+    settings,
+    test_admin_service,
+):
+    """Reset backend test data after the test session when supported."""
+
+    yield
+
+    assert_reset_allowed(settings.env)
+
+    response = test_admin_service.reset_test_data()
+    reset_performed = evaluate_reset_response(response)
+
+    if reset_performed:
+        print("\nBackend test data reset completed.")
+    else:
+        print(
+            "\nBackend reset endpoint is unavailable; "
+            "per-test cleanup remains active."
+        )
