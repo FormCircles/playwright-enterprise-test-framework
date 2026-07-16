@@ -84,6 +84,8 @@ jobs:
           playwright install --with-deps
 
       - name: Run automated tests
+        env:
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
         run: |
           pytest api_tests/tests \
             --junitxml=test-results/junit-results.xml \

@@ -81,11 +81,25 @@ def devices_service(api_client: APIClient) -> DevicesService:
     return DevicesService(api_client)
 
 
-@pytest.fixture
-def health_service(api_client: APIClient) -> HealthService:
-    """Return the health API service."""
+@pytest.fixture(scope="session")
+def public_api_client(
+    api_request_context: APIRequestContext,
+) -> APIClient:
+    """Return an unauthenticated API client."""
 
-    return HealthService(api_client)
+    return APIClient(
+        request_context=api_request_context,
+        auth_token=None,
+    )
+
+
+@pytest.fixture
+def health_service(
+    public_api_client: APIClient,
+) -> HealthService:
+    """Return the public health API service."""
+
+    return HealthService(public_api_client)
 
 
 @pytest.fixture(scope="session")
@@ -93,3 +107,5 @@ def test_admin_service(api_client: APIClient) -> TestAdminService:
     """Return the backend test-administration service."""
 
     return TestAdminService(api_client)
+
+
