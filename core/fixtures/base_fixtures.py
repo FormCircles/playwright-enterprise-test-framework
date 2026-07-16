@@ -1,8 +1,34 @@
+from __future__ import annotations
+
 import pytest
 
-from core.api.api_client import APIClient
+from core.config.settings import Settings
 
 
-@pytest.fixture
-def api_client(api_request_context,base_url, auth_header):
-    return APIClient(api_request_context, base_url, auth_header)
+@pytest.fixture(scope="session")
+def settings(pytestconfig):
+    """Load settings for the selected execution environment."""
+
+    environment = pytestconfig.getoption("--env")
+    return Settings(environment)
+
+
+@pytest.fixture(scope="session")
+def base_url(settings):
+    """Return the selected environment base URL."""
+
+    return settings.base_url
+
+
+@pytest.fixture(scope="session")
+def test_username(settings):
+    """Return the configured automation username."""
+
+    return settings.username
+
+
+@pytest.fixture(scope="session")
+def test_password(settings):
+    """Return the configured password, which may be empty."""
+
+    return settings.password
