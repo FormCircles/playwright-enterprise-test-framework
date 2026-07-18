@@ -8,11 +8,18 @@ from core.assertions.api_assertions import (
     assert_status_code,
     assert_success_response,
 )
+
 from core.schemas.device_schemas import (
     DEVICE_DETAIL_SCHEMA,
     DEVICE_LIST_SCHEMA,
 )
+
 from core.test_data import InvalidDeviceFactory
+
+pytestmark = [
+    pytest.mark.api,
+    pytest.mark.regression,
+]
 
 
 def test_get_devices_returns_list(devices_service):
@@ -24,8 +31,6 @@ def test_get_devices_returns_list(devices_service):
     assert_matches_schema(devices, DEVICE_LIST_SCHEMA)
 
 
-@pytest.mark.regression
-@pytest.mark.api
 def test_create_device(
     devices_service,
     device_factory,
