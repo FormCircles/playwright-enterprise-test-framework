@@ -1,3 +1,14 @@
+from __future__ import annotations
+
+import pytest
+
+
+pytestmark = [
+    pytest.mark.api,
+    pytest.mark.regression,
+]
+
+
 def test_create_device_with_missing_status_returns_422(devices_service):
     invalid_payload = {
         "name": "Broken Device",
