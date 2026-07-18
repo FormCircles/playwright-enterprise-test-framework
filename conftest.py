@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import pytest
+import pytest_html
 
+from pathlib import Path
 from core.cleanup.backend_reset import evaluate_reset_response
 from core.environment import assert_reset_allowed
-
+from xdist import is_xdist_worker
 
 pytest_plugins = [
     "core.fixtures.api_fixtures",
@@ -13,15 +15,16 @@ pytest_plugins = [
     "core.fixtures.ui_fixtures",
 ]
 
-from pathlib import Path
-
-import pytest
-import pytest_html
-
 from core.diagnostics.failure_diagnostics import (
     build_failure_diagnostics,
     write_failure_diagnostics,
 )
+
+DIAGNOSTICS_DIRECTORY = Path(
+    "test-results",
+    "diagnostics",
+)
+
 
 
 def pytest_addoption(parser):
@@ -41,16 +44,24 @@ def reset_backend_after_test_session(
     request,
     settings,
 ):
-    """Reset backend test data after the session when supported."""
+    """Reset backend data after serial runs when supported."""
 
+    running_in_worker = is_xdist_worker(request)
     test_admin_service = None
 
-    if settings.password:
+    if settings.password and not running_in_worker:
         test_admin_service = request.getfixturevalue(
             "test_admin_service"
         )
 
     yield
+
+    if running_in_worker:
+        print(
+            "\nBackend reset skipped in xdist worker; "
+            "per-test cleanup remains active."
+        )
+        return
 
     assert_reset_allowed(settings.env)
 
@@ -72,11 +83,6 @@ def reset_backend_after_test_session(
             "per-test cleanup remains active."
         )
 
-
-DIAGNOSTICS_DIRECTORY = Path(
-    "test-results",
-    "diagnostics",
-)
 
 
 @pytest.hookimpl(hookwrapper=True)
