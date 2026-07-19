@@ -36,6 +36,14 @@ jobs:
           pip install -r requirements.txt
           pip install -r sut/FastAPIMockApp/requirements.txt
 
+      - name: Install Playwright Chromium
+        run: python -m playwright install --with-deps chromium
+      
+      - name: Verify Playwright installation
+        run: |
+          python -m playwright --version
+          python -m playwright install --list
+
       - name: Build FastAPI Docker image
         run: |
           docker build -t fastapi-mock-enterprise-app:ci ./sut/FastAPIMockApp

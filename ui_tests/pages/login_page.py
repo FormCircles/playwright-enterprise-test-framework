@@ -44,6 +44,14 @@ class LoginPage(BasePage):
         """Navigate to the login page."""
         self.navigate(self.PATH)
 
+    
+    def assert_loaded(self) -> None:
+        """Verify that the login page is displayed."""
+        self.assert_visible(self.username_input)
+        self.assert_visible(self.password_input)
+        self.assert_enabled(self.login_button)
+
+
     def login(self, username: str, password: str) -> None:
         """Submit the login form."""
         self.fill(self.username_input, username)
