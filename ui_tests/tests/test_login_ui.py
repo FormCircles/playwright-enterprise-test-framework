@@ -8,7 +8,21 @@ from ui_tests.pages.login_page import LoginPage
 pytestmark = pytest.mark.ui
 
 
+@pytest.mark.ui
 @pytest.mark.smoke
+def test_login_page_loads(
+    page: Page,
+    base_url: str,
+) -> None:
+    """Verify that the login page loads with its primary controls."""
+    login_page = LoginPage(page, base_url)
+
+    login_page.open()
+    login_page.assert_loaded()
+
+@pytest.mark.ui
+@pytest.mark.auth
+@pytest.mark.regression
 def test_login_success(
     page: Page,
     base_url: str,
@@ -44,7 +58,9 @@ def test_login_failure(
     login_page.assert_login_failed()
 
 
-@pytest.mark.smoke
+@pytest.mark.ui
+@pytest.mark.auth
+@pytest.mark.regression
 def test_devices_page_loads(
     page: Page,
     base_url: str,
