@@ -1,39 +1,56 @@
-from ui_tests.pages.login_page import LoginPage
+import pytest
+from playwright.sync_api import Page
+
 from ui_tests.pages.devices_page import DevicesPage
+from ui_tests.pages.login_page import LoginPage
+
+
+pytestmark = pytest.mark.ui
+
 
 def test_login_success(
-    page,
-    base_url,
-    test_username,
-    test_password,
-):
-    login_page = LoginPage(page)
-    devices_page = DevicesPage(page)
+    page: Page,
+    base_url: str,
+    test_username: str,
+    test_password: str,
+) -> None:
+    login_page = LoginPage(page, base_url)
+    devices_page = DevicesPage(page, base_url)
 
-    login_page.goto(base_url)
+    login_page.open()
     login_page.login(test_username, test_password)
 
-    # Existing assertions remain here.
-    assert devices_page.heading.is_visible()
+    devices_page.assert_loaded()
 
 
-def test_login_failure(page, base_url, test_username):
-    login_page = LoginPage(page)
-    devices_page = DevicesPage(page)
+def test_login_failure(
+    page: Page,
+    base_url: str,
+    test_username: str,
+) -> None:
+    login_page = LoginPage(page, base_url)
+    devices_page = DevicesPage(page, base_url)
 
-    login_page.goto(base_url)
-    login_page.login(test_username, "intentionally-invalid-password")
+    login_page.open()
+    login_page.login(
+        test_username,
+        "intentionally-invalid-password",
+    )
 
-    # Assert user is NOT on devices page
     assert not devices_page.is_loaded()
+    login_page.assert_login_failed()
 
 
-def test_devices_page_displays_list(page, base_url):
-    login_page = LoginPage(page)
-    devices_page = DevicesPage(page)
+def test_devices_page_loads(
+    page: Page,
+    base_url: str,
+    test_username: str,
+    test_password: str,
+) -> None:
+    login_page = LoginPage(page, base_url)
+    devices_page = DevicesPage(page, base_url)
 
-    login_page.goto(base_url)
-    login_page.login("admin", "password")
+    login_page.open()
+    login_page.login(test_username, test_password)
 
-    assert devices_page.heading.is_visible()
-    assert devices_page.device_items.count() >= 0
+    devices_page.assert_loaded()
