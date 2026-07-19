@@ -8,6 +8,7 @@ from ui_tests.pages.login_page import LoginPage
 pytestmark = pytest.mark.ui
 
 
+@pytest.mark.smoke
 def test_login_success(
     page: Page,
     base_url: str,
@@ -23,6 +24,8 @@ def test_login_success(
     devices_page.assert_loaded()
 
 
+@pytest.mark.auth
+@pytest.mark.regression
 def test_login_failure(
     page: Page,
     base_url: str,
@@ -41,6 +44,7 @@ def test_login_failure(
     login_page.assert_login_failed()
 
 
+@pytest.mark.smoke
 def test_devices_page_loads(
     page: Page,
     base_url: str,
