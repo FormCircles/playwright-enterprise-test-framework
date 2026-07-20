@@ -14,15 +14,22 @@ class DevicesPage(BasePage):
         base_url: str,
         timeout_ms: int = 10_000,
     ) -> None:
-        super().__init__(page, base_url, timeout_ms)
+        super().__init__(
+            page,
+            base_url,
+            timeout_ms,
+        )
 
-    @property
-    def heading(self) -> Locator:
-        return self.page.get_by_role(
+        self.heading = page.get_by_role(
             "heading",
             name="Devices",
             exact=True,
         )
+
+    def assert_loaded(self) -> None:
+        """Verify the Devices page is displayed."""
+        self.assert_url_contains(self.PATH)
+        self.assert_visible(self.heading)
 
     @property
     def device_items(self) -> Locator:
@@ -35,11 +42,6 @@ class DevicesPage(BasePage):
     def is_loaded(self) -> bool:
         """Return whether the current URL is the Devices page."""
         return "/devices" in self.page.url
-
-    def assert_loaded(self) -> None:
-        """Assert that the Devices page loaded successfully."""
-        self.assert_url_contains("/devices")
-        self.assert_visible(self.heading)
 
     def device_count(self) -> int:
         """Return the number of displayed device items."""
