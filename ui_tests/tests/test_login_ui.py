@@ -20,13 +20,6 @@ def test_login_page_loads(
     login_page.open()
     login_page.assert_loaded()
 
-import pytest
-from playwright.sync_api import Page
-
-from ui_tests.pages.devices_page import DevicesPage
-from ui_tests.pages.login_page import LoginPage
-
-
 @pytest.mark.ui
 @pytest.mark.auth
 @pytest.mark.regression
@@ -88,3 +81,23 @@ def test_devices_page_loads(
     login_page.login(test_username, test_password)
 
     devices_page.assert_loaded()
+
+@pytest.mark.ui
+@pytest.mark.auth
+@pytest.mark.regression
+def test_login_with_invalid_credentials(
+    page: Page,
+    base_url: str,
+) -> None:
+    """Verify that invalid credentials display a login failure message."""
+    login_page = LoginPage(page, base_url)
+
+    login_page.open()
+    login_page.assert_loaded()
+
+    login_page.login(
+        username="invalid-user",
+        password="invalid-password",
+    )
+
+    login_page.assert_login_failed()
