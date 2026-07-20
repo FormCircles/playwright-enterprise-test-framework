@@ -20,6 +20,13 @@ def test_login_page_loads(
     login_page.open()
     login_page.assert_loaded()
 
+import pytest
+from playwright.sync_api import Page
+
+from ui_tests.pages.devices_page import DevicesPage
+from ui_tests.pages.login_page import LoginPage
+
+
 @pytest.mark.ui
 @pytest.mark.auth
 @pytest.mark.regression
@@ -29,11 +36,18 @@ def test_login_success(
     test_username: str,
     test_password: str,
 ) -> None:
+    """Verify that a valid user can successfully log in."""
+
     login_page = LoginPage(page, base_url)
     devices_page = DevicesPage(page, base_url)
 
     login_page.open()
-    login_page.login(test_username, test_password)
+    login_page.assert_loaded()
+
+    login_page.login(
+        test_username,
+        test_password,
+    )
 
     devices_page.assert_loaded()
 
