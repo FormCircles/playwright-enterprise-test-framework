@@ -120,6 +120,16 @@ class BasePage:
             f"but current URL was {current_url!r}"
         )
 
+    def assert_input_value(
+        self,
+        locator: Locator,
+        expected_value: str,
+    ) -> None:
+        """Assert that an input contains the expected value."""
+        expect(locator).to_have_value(
+            expected_value,
+            timeout=self.timeout_ms,
+    )
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
