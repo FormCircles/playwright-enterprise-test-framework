@@ -1,10 +1,12 @@
+"""Page object for the Devices page."""
+
 from playwright.sync_api import Locator, Page
 
 from ui_tests.pages.base_page import BasePage
 
 
 class DevicesPage(BasePage):
-    """Page object for the Devices page."""
+    """Model the Devices page and its supported assertions."""
 
     PATH = "/devices"
 
@@ -15,33 +17,33 @@ class DevicesPage(BasePage):
         timeout_ms: int = 10_000,
     ) -> None:
         super().__init__(
-            page,
-            base_url,
-            timeout_ms,
+            page=page,
+            base_url=base_url,
+            timeout_ms=timeout_ms,
         )
 
-        self.heading = page.get_by_role(
+        self.heading: Locator = page.get_by_role(
             "heading",
             name="Devices",
             exact=True,
         )
 
     def assert_loaded(self) -> None:
-        """Verify the Devices page is displayed."""
+        """Verify that the Devices page is displayed."""
         self.assert_url_contains(self.PATH)
         self.assert_visible(self.heading)
+
+    def open(self) -> None:
+        """Open the Devices page."""
+        self.navigate(self.PATH)
+
+    def is_loaded(self) -> bool:
+        """Return whether the browser is currently on the Devices page."""
+        return self.PATH in self.page.url
 
     @property
     def device_items(self) -> Locator:
         return self.page.locator("li")
-
-    def open(self) -> None:
-        """Navigate to the Devices page."""
-        self.navigate(self.PATH)
-
-    def is_loaded(self) -> bool:
-        """Return whether the current URL is the Devices page."""
-        return "/devices" in self.page.url
 
     def device_count(self) -> int:
         """Return the number of displayed device items."""
