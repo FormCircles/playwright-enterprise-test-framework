@@ -181,7 +181,7 @@ class Settings:
     ) -> int:
         value = config.get(key, default)
 
-        if not isinstance(value, int) or value <= 0:
+        if type(value) is not int or value <= 0:
             raise ValueError(
                 f"Configuration value '{key}' must be a positive integer."
             )
