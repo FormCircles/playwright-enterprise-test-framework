@@ -41,6 +41,8 @@ class Settings:
             environment_config=environment_config,
         )
 
+        self._validate_execution_target()
+
         self.username = self._resolve_string(
             key="username",
             cli_value=overrides.get("username"),
@@ -110,6 +112,22 @@ class Settings:
             return cls._validate_base_url(resolved)
 
         return resolved
+
+    def _validate_execution_target(self) -> None:
+        """Reject unexpected targets for the CI execution environment."""
+
+        if self.env != "ci":
+            return
+
+        approved_ci_target = "http://127.0.0.1:8080"
+
+        if self.base_url != approved_ci_target:
+            raise ValueError(
+                "Unsafe CI BASE_URL: "
+                f"{self.base_url!r}. "
+                "The ci environment only permits "
+                f"{approved_ci_target!r}."
+            )
 
     @staticmethod
     def _validate_base_url(value: str) -> str:

@@ -389,6 +389,9 @@ playwright install chromium
 
 ## Configuration
 
+For BASE_URL precedence, execution environments, and CI safety,
+see [BASE_URL Resolution and Execution Environments](docs/testing/base-url-resolution.md).
+
 The framework supports environment-based execution.
 
 Configuration values may be supplied using environment variables or your preferred configuration mechanism.

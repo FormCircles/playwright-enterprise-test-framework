@@ -20,7 +20,7 @@ ci:
   headless: true
 
 docker:
-  base_url: http://app:8080
+  base_url: http://fastapi:8080
   username: admin
   request_timeout_ms: 30000
   ui_timeout_ms: 30000

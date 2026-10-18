@@ -92,7 +92,7 @@ jobs:
       - name: Run smoke tests
         run: |
           mkdir -p test-results
-          python -m pytest -v -m smoke --env=dev \
+          python -m pytest -v -m smoke --env=ci \
             --junitxml=test-results/junit-results.xml \
             --html=test-results/report.html \
             --self-contained-html

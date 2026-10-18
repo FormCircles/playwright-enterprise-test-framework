@@ -6,6 +6,8 @@ import pytest_html
 from pathlib import Path
 from core.cleanup.backend_reset import evaluate_reset_response
 from core.environment import assert_reset_allowed
+from core.config.settings import Settings
+from core.config.pytest_options import explicit_base_url
 from xdist import is_xdist_worker
 
 pytest_plugins = [
@@ -37,6 +39,29 @@ def pytest_addoption(parser):
             "dev, local, ci, docker, k8s, staging"
         ),
     )
+
+
+def pytest_sessionstart(session):
+    """Validate CI execution target before any tests or fixtures run."""
+
+    config = session.config
+    environment = config.getoption("--env")
+
+    if environment != "ci":
+        return
+
+    explicit_url = explicit_base_url(config)
+
+    overrides = (
+        {"base_url": explicit_url}
+        if explicit_url is not None
+        else None
+    )
+
+    try:
+        Settings(environment, cli_overrides=overrides)
+    except ValueError as exc:
+        raise pytest.UsageError(str(exc)) from exc
 
 
 @pytest.fixture(scope="session", autouse=True)

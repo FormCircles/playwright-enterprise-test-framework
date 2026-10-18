@@ -58,7 +58,7 @@ def test_yaml_used_without_overrides() -> None:
 def test_docker_environment_configuration() -> None:
     settings = Settings("docker")
 
-    assert settings.base_url == "http://app:8080"
+    assert settings.base_url == "http://fastapi:8080"
 
 
 def test_empty_cli_value_fails_instead_of_falling_back(

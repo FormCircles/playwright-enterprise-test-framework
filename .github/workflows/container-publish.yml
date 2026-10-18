@@ -93,6 +93,7 @@ jobs:
           TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
         run: |
           pytest api_tests/tests \
+            --env=ci \
             --junitxml=test-results/junit-results.xml \
             --html=test-results/report.html \
             --self-contained-html

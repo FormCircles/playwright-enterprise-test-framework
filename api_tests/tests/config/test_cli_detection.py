@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from core.fixtures.base_fixtures import _explicit_base_url
+from core.config.pytest_options import explicit_base_url
 
 
 def make_config(args, resolved_url):
@@ -19,7 +19,7 @@ def test_no_explicit_option(monkeypatch):
 
     config = make_config([], "http://plugin:8080")
 
-    assert _explicit_base_url(config) is None
+    assert explicit_base_url(config) is None
 
 
 def test_direct_cli_option(monkeypatch):
@@ -30,7 +30,7 @@ def test_direct_cli_option(monkeypatch):
         "http://cli:8080",
     )
 
-    assert _explicit_base_url(config) == "http://cli:8080"
+    assert explicit_base_url(config) == "http://cli:8080"
 
 
 def test_space_separated_cli_option(monkeypatch):
@@ -41,7 +41,7 @@ def test_space_separated_cli_option(monkeypatch):
         "http://cli:8080",
     )
 
-    assert _explicit_base_url(config) == "http://cli:8080"
+    assert explicit_base_url(config) == "http://cli:8080"
 
 
 def test_pytest_addopts_option(monkeypatch):
@@ -52,7 +52,7 @@ def test_pytest_addopts_option(monkeypatch):
 
     config = make_config([], "http://cli:8080")
 
-    assert _explicit_base_url(config) == "http://cli:8080"
+    assert explicit_base_url(config) == "http://cli:8080"
 
 
 def test_direct_cli_overrides_pytest_addopts(monkeypatch):
@@ -66,7 +66,7 @@ def test_direct_cli_overrides_pytest_addopts(monkeypatch):
         "http://cli:8080",
     )
 
-    assert _explicit_base_url(config) == "http://cli:8080"
+    assert explicit_base_url(config) == "http://cli:8080"
 
 
 def test_duplicate_options_use_pytest_resolved_value(monkeypatch):
@@ -80,7 +80,7 @@ def test_duplicate_options_use_pytest_resolved_value(monkeypatch):
         "http://second:8080",
     )
 
-    assert _explicit_base_url(config) == "http://second:8080"
+    assert explicit_base_url(config) == "http://second:8080"
 
 
 def test_missing_cli_value_is_rejected(monkeypatch):
@@ -89,4 +89,4 @@ def test_missing_cli_value_is_rejected(monkeypatch):
     config = make_config(["--base-url"], None)
 
     with pytest.raises(ValueError, match="requires a value"):
-        _explicit_base_url(config)
+        explicit_base_url(config)
