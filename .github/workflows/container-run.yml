@@ -92,7 +92,7 @@ jobs:
       - name: Execute smoke tests against running container
         run: |
           pytest -m smoke \
-            --base-url=$BASE_URL \
+            --env=ci \
             --junitxml=test-results/smoke-junit-results.xml \
             --html=test-results/smoke-report.html \
             --self-contained-html

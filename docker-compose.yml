@@ -24,7 +24,7 @@ services:
       fastapi:
         condition: service_healthy
     environment:
-      BASE_URL: http://fastapi:8080
+      PETF_ENV: docker
       TEST_SUITE: smoke
       REPORT_DIR: /reports
     volumes:
