@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 import yaml
 
@@ -13,7 +14,12 @@ CONFIG_FILE = Path(__file__).resolve().parent / "environments.yaml"
 class Settings:
     """Load environment-specific test configuration."""
 
-    def __init__(self, env: str = "local") -> None:
+    def __init__(
+        self,
+        env: str = "local",
+        *,
+        cli_overrides: dict[str, str] | None = None,
+    ) -> None:
         environments = self._load_environments()
 
         if env not in environments:
@@ -26,15 +32,20 @@ class Settings:
         environment_config = environments[env]
 
         self.env = env
+        overrides = cli_overrides or {}
 
-        self.base_url = os.getenv(
-            "BASE_URL",
-            self._require_string(environment_config, "base_url"),
+        self.base_url = self._resolve_string(
+            key="base_url",
+            cli_value=overrides.get("base_url"),
+            environment_variables=("BASE_URL", "PYTEST_BASE_URL"),
+            environment_config=environment_config,
         )
 
-        self.username = os.getenv(
-            "TEST_USERNAME",
-            self._require_string(environment_config, "username"),
+        self.username = self._resolve_string(
+            key="username",
+            cli_value=overrides.get("username"),
+            environment_variables=("TEST_USERNAME",),
+            environment_config=environment_config,
         )
 
         self.password = os.getenv("TEST_PASSWORD", "")
@@ -68,6 +79,66 @@ class Settings:
             )
 
         return environments
+
+    @classmethod
+    def _resolve_string(
+        cls,
+        *,
+        key: str,
+        cli_value: str | None,
+        environment_variables: tuple[str, ...],
+        environment_config: dict[str, Any],
+    ) -> str:
+        """Resolve CLI > environment variables > environment YAML."""
+
+        if cli_value is not None:
+            value = cli_value
+        else:
+            value = None
+
+            for variable in environment_variables:
+                if variable in os.environ:
+                    value = os.environ[variable]
+                    break
+
+            if value is None:
+                value = environment_config.get(key)
+
+        resolved = cls._require_string({key: value}, key)
+
+        if key == "base_url":
+            return cls._validate_base_url(resolved)
+
+        return resolved
+
+    @staticmethod
+    def _validate_base_url(value: str) -> str:
+        """Validate the resolved HTTP(S) application URL."""
+
+        try:
+            parsed = urlsplit(value)
+            valid_port = parsed.port
+        except ValueError as exc:
+            raise ValueError(
+                "Configuration value 'base_url' must be a valid HTTP(S) URL."
+            ) from exc
+
+        if (
+            parsed.scheme not in {"http", "https"}
+            or not parsed.hostname
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.query
+            or parsed.fragment
+            or any(char.isspace() for char in value)
+            or (valid_port is not None and valid_port <= 0)
+        ):
+            raise ValueError(
+                "Configuration value 'base_url' must be a valid HTTP(S) URL "
+                "without credentials, query parameters, or fragments."
+            )
+
+        return value
 
     @staticmethod
     def _require_string(
