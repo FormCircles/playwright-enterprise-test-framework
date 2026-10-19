@@ -15,3 +15,6 @@ __pycache__/
 .env
 .env.local
 .env.*.local
+
+# Generated test artifacts
+test-results/

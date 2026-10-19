@@ -10,9 +10,20 @@ import pytest
 from playwright.sync_api import Page
 
 from core.diagnostics.failure_screenshots import (
-    capture_failure_screenshot,
+    capture_failure_screenshot as _capture_failure_screenshot,
+)
+from core.diagnostics.failure_screenshots import (
     is_eligible_ui_failure,
 )
+
+
+def capture_failure_screenshot(**kwargs):
+    """Supply stable test identities to the screenshot helper."""
+    return _capture_failure_screenshot(
+        run_id="test-run",
+        worker_id="gw0",
+        **kwargs,
+    )
 
 
 def make_item(*, ui=True, page=None):
@@ -129,7 +140,7 @@ def test_capture_failure_does_not_propagate(tmp_path):
     )
 
     assert result is None
-    assert list(tmp_path.iterdir()) == []
+    assert list(tmp_path.rglob("*.png")) == []
 
 
 def test_storage_failure_does_not_propagate(tmp_path):
@@ -163,3 +174,71 @@ def test_repeated_captures_have_distinct_paths(tmp_path):
         paths.append(result)
 
     assert len(set(paths)) == 3
+
+
+def test_repeated_capture_preserves_existing_screenshot(tmp_path):
+    """Repeated captures must not overwrite earlier evidence."""
+    page = MagicMock(spec=Page)
+    page.is_closed.return_value = False
+
+    def write_screenshot(*, path, full_page):
+        assert full_page is True
+        Path(path).write_bytes(b"new screenshot")
+
+    page.screenshot.side_effect = write_screenshot
+
+    item = make_item(page=page)
+    report = make_report()
+
+    first = capture_failure_screenshot(
+        item=item,
+        report=report,
+        output_directory=tmp_path,
+    )
+
+    assert first is not None
+    assert first.exists()
+
+    first.write_bytes(b"original screenshot")
+
+    second = capture_failure_screenshot(
+        item=item,
+        report=report,
+        output_directory=tmp_path,
+    )
+
+    assert second is not None
+    assert second.exists()
+    assert first != second
+    assert first.read_bytes() == b"original screenshot"
+    assert second.read_bytes() == b"new screenshot"
+    assert page.screenshot.call_count == 2
+
+
+@pytest.mark.parametrize(
+    ("run_id", "screenshot_worker_id"),
+    [
+        (None, "gw0"),
+        ("test-run", None),
+        ("", "gw0"),
+        ("test-run", ""),
+    ],
+)
+def test_missing_screenshot_identity_skips_capture(
+    tmp_path, run_id, screenshot_worker_id
+):
+    """Missing run or worker identity must not interrupt pytest."""
+    page = MagicMock(spec=Page)
+    page.is_closed.return_value = False
+
+    result = _capture_failure_screenshot(
+        item=make_item(page=page),
+        report=make_report(),
+        output_directory=tmp_path,
+        run_id=run_id,
+        worker_id=screenshot_worker_id,
+    )
+
+    assert result is None
+    page.screenshot.assert_not_called()
+    assert list(tmp_path.rglob("*.png")) == []

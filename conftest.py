@@ -61,6 +61,13 @@ def pytest_sessionstart(session):
 
 
 @pytest.fixture(scope="session", autouse=True)
+def screenshot_run_identity(request, testrun_uid, worker_id):
+    """Initialize screenshot identity once per pytest process."""
+    request.config._petf_screenshot_run_id = testrun_uid
+    request.config._petf_screenshot_worker_id = worker_id
+
+
+@pytest.fixture(scope="session", autouse=True)
 def reset_backend_after_test_session(
     request,
     settings,
@@ -112,6 +119,8 @@ def pytest_runtest_makereport(item, call):
         item=item,
         report=report,
         output_directory=Path("test-results", "screenshots"),
+        run_id=getattr(item.config, "_petf_screenshot_run_id", None),
+        worker_id=getattr(item.config, "_petf_screenshot_worker_id", None),
     )
 
     if screenshot_path is not None:
