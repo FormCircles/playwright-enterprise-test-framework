@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import logging
-import tempfile
+import os
 from pathlib import Path
 from typing import Any
 
 from playwright.sync_api import Page
+
+from core.diagnostics.screenshot_paths import screenshot_artifact_path
 
 LOGGER = logging.getLogger(__name__)
 
@@ -34,37 +36,61 @@ def capture_failure_screenshot(
     item: Any,
     report: Any,
     output_directory: Path,
+    run_id: str | None = None,
+    worker_id: str | None = None,
 ) -> Path | None:
     """Capture evidence without changing the original test outcome."""
     if not is_eligible_ui_failure(item, report):
+        return None
+
+    if not run_id or not worker_id:
+        LOGGER.warning("Screenshot identity unavailable for %s", report.nodeid)
         return None
 
     page = item.funcargs["page"]
     output_path: Path | None = None
 
     try:
-        output_directory.mkdir(parents=True, exist_ok=True)
-
-        import os
-
-        fd, filename = tempfile.mkstemp(
-            prefix="ui-failure-",
-            suffix=".png",
-            dir=output_directory,
+        base_path = screenshot_artifact_path(
+            output_directory=output_directory,
+            run_id=run_id,
+            worker_id=worker_id,
+            node_id=report.nodeid,
         )
-        os.close(fd)
-        output_path = Path(filename)
+        base_path.parent.mkdir(parents=True, exist_ok=True)
 
-        page.screenshot(
-            path=str(output_path),
-            full_page=True,
-        )
+        for attempt in range(100):
+            candidate = (
+                base_path
+                if attempt == 0
+                else base_path.with_name(
+                    f"{base_path.stem}-{attempt}{base_path.suffix}"
+                )
+            )
+            try:
+                fd = os.open(
+                    candidate,
+                    os.O_CREAT | os.O_EXCL | os.O_WRONLY,
+                    0o600,
+                )
+            except FileExistsError:
+                continue
 
+            output_path = candidate
+            os.close(fd)
+            break
+        else:
+            raise OSError("Screenshot collision limit exceeded")
+
+        page.screenshot(path=str(output_path), full_page=True)
         return output_path
 
     except Exception:
         if output_path is not None:
-            output_path.unlink(missing_ok=True)
+            try:
+                output_path.unlink(missing_ok=True)
+            except OSError:
+                LOGGER.warning("Unable to remove incomplete screenshot")
 
         LOGGER.warning(
             "Unable to capture screenshot for %s",
