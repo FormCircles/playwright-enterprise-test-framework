@@ -1,14 +1,15 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 import pytest_html
-
-from pathlib import Path
-from core.cleanup.backend_reset import evaluate_reset_response
-from core.environment import assert_reset_allowed
-from core.config.settings import Settings
-from core.config.pytest_options import explicit_base_url
 from xdist import is_xdist_worker
+
+from core.cleanup.backend_reset import evaluate_reset_response
+from core.config.pytest_options import explicit_base_url
+from core.config.settings import Settings
+from core.environment import assert_reset_allowed
 
 pytest_plugins = [
     "core.fixtures.api_fixtures",
@@ -21,6 +22,9 @@ from core.diagnostics.failure_diagnostics import (
     build_failure_diagnostics,
     write_failure_diagnostics,
 )
+from core.diagnostics.failure_screenshots import (
+    capture_failure_screenshot,
+)
 
 DIAGNOSTICS_DIRECTORY = Path(
     "test-results",
@@ -28,16 +32,12 @@ DIAGNOSTICS_DIRECTORY = Path(
 )
 
 
-
 def pytest_addoption(parser):
     parser.addoption(
         "--env",
         action="store",
         default="local",
-        help=(
-            "Target test environment: "
-            "dev, local, ci, docker, k8s, staging"
-        ),
+        help=("Target test environment: dev, local, ci, docker, k8s, staging"),
     )
 
 
@@ -52,11 +52,7 @@ def pytest_sessionstart(session):
 
     explicit_url = explicit_base_url(config)
 
-    overrides = (
-        {"base_url": explicit_url}
-        if explicit_url is not None
-        else None
-    )
+    overrides = {"base_url": explicit_url} if explicit_url is not None else None
 
     try:
         Settings(environment, cli_overrides=overrides)
@@ -75,26 +71,20 @@ def reset_backend_after_test_session(
     test_admin_service = None
 
     if settings.password and not running_in_worker:
-        test_admin_service = request.getfixturevalue(
-            "test_admin_service"
-        )
+        test_admin_service = request.getfixturevalue("test_admin_service")
 
     yield
 
     if running_in_worker:
         print(
-            "\nBackend reset skipped in xdist worker; "
-            "per-test cleanup remains active."
+            "\nBackend reset skipped in xdist worker; per-test cleanup remains active."
         )
         return
 
     assert_reset_allowed(settings.env)
 
     if test_admin_service is None:
-        print(
-            "\nBackend reset skipped because TEST_PASSWORD "
-            "is not configured."
-        )
+        print("\nBackend reset skipped because TEST_PASSWORD is not configured.")
         return
 
     response = test_admin_service.reset_test_data()
@@ -104,10 +94,8 @@ def reset_backend_after_test_session(
         print("\nBackend test data reset completed.")
     else:
         print(
-            "\nBackend reset endpoint is unavailable; "
-            "per-test cleanup remains active."
+            "\nBackend reset endpoint is unavailable; per-test cleanup remains active."
         )
-
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -119,6 +107,15 @@ def pytest_runtest_makereport(item, call):
 
     if not report.failed:
         return
+
+    screenshot_path = capture_failure_screenshot(
+        item=item,
+        report=report,
+        output_directory=Path("test-results", "screenshots"),
+    )
+
+    if screenshot_path is not None:
+        item.user_properties.append(("failure_screenshot", str(screenshot_path)))
 
     diagnostics = build_failure_diagnostics(
         item=item,
