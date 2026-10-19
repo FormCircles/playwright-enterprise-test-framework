@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
+
 import pytest
 from playwright.sync_api import APIRequestContext, Playwright
 
@@ -14,13 +16,21 @@ def api_request_context(
     playwright: Playwright,
     base_url: str,
     settings,
-) -> APIRequestContext:
-    """Create a reusable Playwright API request context."""
+) -> Iterator[APIRequestContext]:
+    """Own and dispose of the session's API request context.
 
-    return playwright.request.new_context(
+    Dependent session fixtures finish before this fixture's teardown.
+    """
+
+    context = playwright.request.new_context(
         base_url=base_url,
         timeout=settings.request_timeout_ms,
     )
+
+    try:
+        yield context
+    finally:
+        context.dispose()
 
 
 @pytest.fixture(scope="session")
@@ -32,9 +42,7 @@ def auth_token(
     """Authenticate once and return a bearer token."""
 
     if not test_password:
-        raise RuntimeError(
-            "TEST_PASSWORD is required for authenticated tests."
-        )
+        raise RuntimeError("TEST_PASSWORD is required for authenticated tests.")
 
     response = api_request_context.post(
         "/api/login",
@@ -45,8 +53,7 @@ def auth_token(
     )
 
     assert response.status == 200, (
-        f"Login failed. Status: {response.status}. "
-        f"Response: {response.text()}"
+        f"Login failed. Status: {response.status}. Response: {response.text()}"
     )
 
     return response.json()["access_token"]
@@ -107,5 +114,3 @@ def test_admin_service(api_client: APIClient) -> TestAdminService:
     """Return the backend test-administration service."""
 
     return TestAdminService(api_client)
-
-
