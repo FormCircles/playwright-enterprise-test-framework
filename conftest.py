@@ -9,6 +9,7 @@ from xdist import is_xdist_worker
 from core.cleanup.backend_reset import evaluate_reset_response
 from core.config.pytest_options import explicit_base_url
 from core.config.settings import Settings
+from core.config.trace_policy import TRACE_MODES, resolve_trace_mode
 from core.environment import assert_reset_allowed
 
 pytest_plugins = [
@@ -34,11 +35,39 @@ DIAGNOSTICS_DIRECTORY = Path(
 
 def pytest_addoption(parser):
     parser.addoption(
+        "--petf-trace",
+        choices=TRACE_MODES,
+        default=None,
+        help="PETF trace policy (default: off)",
+    )
+    parser.addoption(
         "--env",
         action="store",
         default="local",
         help=("Target test environment: dev, local, ci, docker, k8s, staging"),
     )
+
+
+def pytest_configure(config):
+    """Apply PETF tracing without overriding explicit native settings."""
+    import os
+    import shlex
+
+    mode = config.getoption("--petf-trace")
+    args = list(config.invocation_params.args)
+    args += shlex.split(os.environ.get("PYTEST_ADDOPTS", ""))
+
+    native_explicit = any(
+        arg == "--tracing" or arg.startswith("--tracing=") for arg in args
+    )
+
+    if mode is not None and native_explicit:
+        raise pytest.UsageError("Specify either --petf-trace or --tracing, not both.")
+
+    if mode is not None:
+        config.option.tracing = resolve_trace_mode(mode)
+    elif not native_explicit:
+        config.option.tracing = "off"
 
 
 def pytest_sessionstart(session):
