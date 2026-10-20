@@ -33,14 +33,6 @@ def screenshot_artifact_path(
     run_component = sanitize_component(run_id)
     worker_component = sanitize_component(worker_id)
 
-    test_name = node_id.rsplit("::", 1)[-1]
-    test_component = sanitize_component(test_name, max_length=64)
-
     digest = hashlib.sha256(node_id.encode("utf-8")).hexdigest()[:16]
 
-    return (
-        output_directory
-        / run_component
-        / worker_component
-        / f"{test_component}-{digest}.png"
-    )
+    return output_directory / run_component / worker_component / f"{digest}.png"
