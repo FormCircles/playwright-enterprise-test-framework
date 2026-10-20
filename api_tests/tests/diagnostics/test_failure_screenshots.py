@@ -242,3 +242,90 @@ def test_missing_screenshot_identity_skips_capture(
     assert result is None
     page.screenshot.assert_not_called()
     assert list(tmp_path.rglob("*.png")) == []
+
+
+def test_partial_screenshot_is_removed_after_capture_failure(tmp_path):
+    """A partially written screenshot must not remain as evidence."""
+    page = MagicMock(spec=Page)
+    page.is_closed.return_value = False
+
+    def fail_after_partial_write(*, path, full_page):
+        assert full_page is True
+        Path(path).write_bytes(b"incomplete screenshot")
+        raise RuntimeError("Screenshot interrupted")
+
+    page.screenshot.side_effect = fail_after_partial_write
+
+    result = capture_failure_screenshot(
+        item=make_item(page=page),
+        report=make_report(),
+        output_directory=tmp_path,
+    )
+
+    assert result is None
+    assert list(tmp_path.rglob("*.png")) == []
+    page.screenshot.assert_called_once()
+
+
+def test_screenshots_from_different_runs_are_preserved(tmp_path):
+    """A later run must not overwrite or delete earlier screenshots."""
+    page = MagicMock(spec=Page)
+    page.is_closed.return_value = False
+
+    def write_screenshot(*, path, full_page):
+        assert full_page is True
+        Path(path).write_bytes(b"captured screenshot")
+
+    page.screenshot.side_effect = write_screenshot
+
+    item = make_item(page=page)
+    report = make_report()
+
+    first = _capture_failure_screenshot(
+        item=item,
+        report=report,
+        output_directory=tmp_path,
+        run_id="run-A",
+        worker_id="gw0",
+    )
+
+    assert first is not None
+    assert first.exists()
+    first.write_bytes(b"original evidence")
+
+    second = _capture_failure_screenshot(
+        item=item,
+        report=report,
+        output_directory=tmp_path,
+        run_id="run-B",
+        worker_id="gw0",
+    )
+
+    assert second is not None
+    assert second.exists()
+    assert first != second
+    assert first.parent != second.parent
+    assert first.read_bytes() == b"original evidence"
+    assert second.read_bytes() == b"captured screenshot"
+    assert len(list(tmp_path.rglob("*.png"))) == 2
+    assert page.screenshot.call_count == 2
+
+
+def test_cleanup_failure_does_not_propagate(tmp_path):
+    """A screenshot cleanup error must not mask the original failure."""
+    page = MagicMock(spec=Page)
+    page.is_closed.return_value = False
+    page.screenshot.side_effect = RuntimeError("capture failed")
+
+    with patch(
+        "pathlib.Path.unlink",
+        side_effect=OSError("cleanup denied"),
+    ):
+        result = capture_failure_screenshot(
+            item=make_item(page=page),
+            report=make_report(),
+            output_directory=tmp_path,
+        )
+
+    assert result is None
+    page.screenshot.assert_called_once()
