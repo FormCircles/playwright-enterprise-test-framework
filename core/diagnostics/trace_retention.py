@@ -11,7 +11,11 @@ def discard_successful_trace(*, artifact_directory: Path, failed: bool) -> None:
         return
     for trace in artifact_directory.glob("trace*.zip"):
         if trace.is_file():
-            trace.unlink()
+            try:
+                trace.unlink()
+            except OSError:
+                # Artifact cleanup must not replace the original test outcome.
+                pass
     # Remove empty reservation directories, without touching other artifacts.
     try:
         artifact_directory.rmdir()
