@@ -10,6 +10,7 @@ from core.cleanup.backend_reset import evaluate_reset_response
 from core.config.pytest_options import explicit_base_url
 from core.config.settings import Settings
 from core.config.trace_policy import TRACE_MODES, resolve_trace_mode
+from core.diagnostics.trace_retention import discard_successful_trace
 from core.environment import assert_reset_allowed
 
 pytest_plugins = [
@@ -56,15 +57,17 @@ def pytest_configure(config):
     mode = config.getoption("--petf-trace")
     args = list(config.invocation_params.args)
     args += shlex.split(os.environ.get("PYTEST_ADDOPTS", ""))
-
     native_explicit = any(
         arg == "--tracing" or arg.startswith("--tracing=") for arg in args
     )
-
     if mode is not None and native_explicit:
         raise pytest.UsageError("Specify either --petf-trace or --tracing, not both.")
 
-    if mode is not None:
+    config._petf_trace_cleanup_enabled = mode == "on-failure"
+    if mode == "on-failure":
+        # Native recorder must retain until pytest knows teardown outcome.
+        config.option.tracing = "on"
+    elif mode is not None:
         config.option.tracing = resolve_trace_mode(mode)
     elif not native_explicit:
         config.option.tracing = "off"
@@ -136,10 +139,20 @@ def reset_backend_after_test_session(
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-    """Attach sanitized diagnostics when a test phase fails."""
-
+    """Retain native traces for any failed phase; attach existing diagnostics."""
     outcome = yield
     report = outcome.get_result()
+
+    if getattr(item.config, "_petf_trace_cleanup_enabled", False):
+        if report.failed:
+            item._petf_trace_failed = True
+        if report.when == "teardown":
+            artifact_path = getattr(item, "_petf_trace_artifact_path", None)
+            if artifact_path is not None:
+                discard_successful_trace(
+                    artifact_directory=Path(artifact_path),
+                    failed=getattr(item, "_petf_trace_failed", False),
+                )
 
     if not report.failed:
         return
