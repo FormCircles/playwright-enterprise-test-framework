@@ -14,7 +14,7 @@ from core.schemas.device_schemas import (
     DEVICE_LIST_SCHEMA,
 )
 
-from core.test_data import InvalidDeviceFactory
+from api_tests.test_data import InvalidDeviceFactory
 
 pytestmark = [
     pytest.mark.api,

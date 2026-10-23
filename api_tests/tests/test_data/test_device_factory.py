@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from core.test_data.device_factory import DeviceFactory
+from api_tests.test_data.device_factory import DeviceFactory
 
 
 def test_device_factory_creates_valid_payload():

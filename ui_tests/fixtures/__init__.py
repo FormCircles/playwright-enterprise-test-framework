@@ -1,0 +1,1 @@
+"""Reference UI fixture registration."""

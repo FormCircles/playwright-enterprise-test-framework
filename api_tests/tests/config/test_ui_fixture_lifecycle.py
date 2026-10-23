@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 from playwright.sync_api import Page
 
-from core.fixtures.ui_fixtures import login_page as login_page_fixture
+from ui_tests.fixtures.ui_fixtures import login_page as login_page_fixture
 from ui_tests.pages.base_page import BasePage
 from ui_tests.pages.login_page import LoginPage
 

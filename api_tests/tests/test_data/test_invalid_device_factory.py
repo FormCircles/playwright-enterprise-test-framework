@@ -1,4 +1,4 @@
-from core.test_data import InvalidDeviceFactory
+from api_tests.test_data import InvalidDeviceFactory
 
 
 def test_missing_name():

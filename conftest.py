@@ -4,19 +4,15 @@ from pathlib import Path
 
 import pytest
 import pytest_html
-from xdist import is_xdist_worker
 
-from core.cleanup.backend_reset import evaluate_reset_response
 from core.config.pytest_options import explicit_base_url
 from core.config.settings import Settings
 from core.config.trace_policy import TRACE_MODES, resolve_trace_mode
 from core.diagnostics.trace_retention import discard_successful_trace
-from core.environment import assert_reset_allowed
 
 pytest_plugins = [
     "core.fixtures.api_fixtures",
     "core.fixtures.base_fixtures",
-    "core.fixtures.data_fixtures",
     "core.fixtures.ui_fixtures",
 ]
 
@@ -97,44 +93,6 @@ def screenshot_run_identity(request, testrun_uid, worker_id):
     """Initialize screenshot identity once per pytest process."""
     request.config._petf_screenshot_run_id = testrun_uid
     request.config._petf_screenshot_worker_id = worker_id
-
-
-@pytest.fixture(scope="session", autouse=True)
-def reset_backend_after_test_session(
-    request,
-    settings,
-):
-    """Reset backend data after serial runs when supported."""
-
-    running_in_worker = is_xdist_worker(request)
-    test_admin_service = None
-
-    if settings.password and not running_in_worker:
-        test_admin_service = request.getfixturevalue("test_admin_service")
-
-    yield
-
-    if running_in_worker:
-        print(
-            "\nBackend reset skipped in xdist worker; per-test cleanup remains active."
-        )
-        return
-
-    assert_reset_allowed(settings.env)
-
-    if test_admin_service is None:
-        print("\nBackend reset skipped because TEST_PASSWORD is not configured.")
-        return
-
-    response = test_admin_service.reset_test_data()
-    reset_performed = evaluate_reset_response(response)
-
-    if reset_performed:
-        print("\nBackend test data reset completed.")
-    else:
-        print(
-            "\nBackend reset endpoint is unavailable; per-test cleanup remains active."
-        )
 
 
 @pytest.hookimpl(hookwrapper=True)
