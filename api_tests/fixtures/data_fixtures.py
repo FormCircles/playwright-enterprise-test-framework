@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 from typing import Any
 
 import pytest
 
-from core.test_data.device_factory import DeviceFactory
+from api_tests.test_data.device_factory import DeviceFactory
 
 
 @pytest.fixture
@@ -40,7 +40,7 @@ def created_device(
 @pytest.fixture
 def device_cleanup(
     devices_service,
-) -> Callable[[int | str | dict[str, Any]], None]:
+) -> Generator[Callable[[int | str | dict[str, Any]], None], None, None]:
     """Track created devices and delete them after the test."""
 
     device_ids: list[int | str] = []
@@ -50,9 +50,7 @@ def device_cleanup(
             device_id = device.get("id")
 
             if device_id is None:
-                raise ValueError(
-                    "Cannot register device cleanup: device has no 'id'."
-                )
+                raise ValueError("Cannot register device cleanup: device has no 'id'.")
         else:
             device_id = device
 
@@ -67,8 +65,7 @@ def device_cleanup(
 
         if response.status not in {204, 404}:
             cleanup_failures.append(
-                f"Device {device_id}: status={response.status}, "
-                f"body={response.text()}"
+                f"Device {device_id}: status={response.status}, body={response.text()}"
             )
 
     assert not cleanup_failures, (

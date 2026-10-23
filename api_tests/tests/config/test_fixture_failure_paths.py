@@ -8,13 +8,13 @@ from unittest.mock import MagicMock
 import pytest
 from playwright.sync_api import Page
 
-from core.fixtures.api_fixtures import (
+from api_tests.fixtures.api_fixtures import (
     api_client as api_client_fixture,
 )
 from core.fixtures.api_fixtures import (
     api_request_context,
 )
-from core.fixtures.ui_fixtures import login_page
+from ui_tests.fixtures.ui_fixtures import login_page
 
 
 def make_api_fixture():

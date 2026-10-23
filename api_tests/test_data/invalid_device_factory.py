@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.test_data.device_factory import DeviceFactory
+from api_tests.test_data.device_factory import DeviceFactory
 
 
 class InvalidDeviceFactory:
@@ -16,9 +16,7 @@ class InvalidDeviceFactory:
 
     @staticmethod
     def empty_name() -> dict[str, Any]:
-        return DeviceFactory.create(
-            name=""
-        )
+        return DeviceFactory.create(name="")
 
     @staticmethod
     def null_name() -> dict[str, Any]:
@@ -28,9 +26,7 @@ class InvalidDeviceFactory:
 
     @staticmethod
     def invalid_status() -> dict[str, Any]:
-        return DeviceFactory.create(
-            status="unsupported"
-        )
+        return DeviceFactory.create(status="unsupported")
 
     @staticmethod
     def numeric_status() -> dict[str, Any]:
