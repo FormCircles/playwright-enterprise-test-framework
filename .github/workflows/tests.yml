@@ -113,16 +113,20 @@ jobs:
         run: |
           cat sut/FastAPIMockApp/server.log || echo "No server.log found"
 
-      - name: Upload test artifacts
-        if: ${{ always() }}
+      - name: Collect canonical PETF artifacts
+        id: collect_artifacts
+        if: ${{ !cancelled() }}
+        run: |
+          python -m scripts.collect_ci_artifacts \
+            --run-id "ci-${{ github.run_id }}-${{ github.run_attempt }}"
+
+      - name: Upload canonical PETF artifacts
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: test-artifacts
-          path: |
-            test-results/junit-results.xml
-            test-results/report.html
-            sut/FastAPIMockApp/server.log
-          if-no-files-found: 'warn'
+          name: petf-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.collect_artifacts.outputs.artifact_path }}
+          if-no-files-found: error
           retention-days: 14
 
       - name: Stop FastAPI app
