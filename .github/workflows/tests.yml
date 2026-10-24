@@ -121,7 +121,7 @@ jobs:
             --run-id "ci-${{ github.run_id }}-${{ github.run_attempt }}"
 
       - name: Upload canonical PETF artifacts
-        if: ${{ !cancelled() }}
+        if: ${{ always() && !cancelled() && steps.collect_artifacts.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
           name: petf-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
