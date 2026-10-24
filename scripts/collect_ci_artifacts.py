@@ -12,6 +12,7 @@ from core.diagnostics.artifact_paths import (
     reserve_artifact_directory,
     run_artifact_directory,
 )
+from core.diagnostics.artifact_security import verify_artifact_security
 
 REPORT_FILES = (
     Path("test-results/junit-results.xml"),
@@ -56,6 +57,12 @@ def collect_artifacts(*, run_id: str, workspace: Path) -> Path:
         destination = legacy_dir / "server-logs" / source_log.name
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source_log, destination)
+
+    try:
+        verify_artifact_security(run_dir)
+    except Exception:
+        shutil.rmtree(run_dir)
+        raise
 
     return run_dir
 
