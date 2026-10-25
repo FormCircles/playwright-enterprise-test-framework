@@ -86,3 +86,16 @@ Regression tests cover:
 Parallel pytest-xdist regression execution verifies compatibility
 with multiple workers. It does not, by itself, prove simultaneous
 real-browser screenshot capture.
+
+## PETF v1.1 Capture and Publication Notes
+
+PETF attempts a full-page screenshot only for a failed UI **call** phase
+with an open Playwright `Page` fixture. It stores screenshots beneath
+`test-results/screenshots/<run-id>/<worker-id>/` with an opaque node-ID-based
+filename. Exclusive file creation avoids collisions; capture failures do
+not replace the original test result. Eligible screenshots are copied into
+CI staging when present.
+
+Screenshot **pixels are not redacted or scanned** for secrets. Treat these
+files as sensitive even when the staged artifact security check succeeds.
+See [CI publication operations](operations/ci-artifact-publication.md).

@@ -153,3 +153,25 @@ Verify that the selected environment is `docker`.
 
 Check that the requested environment exists in
 `core/config/environments.yaml`.
+
+## PETF v1.1 Fixture and Operational Notes
+
+The session-scoped `settings` fixture resolves configuration in
+`core/config/settings.py`. For `base_url`, precedence is explicit pytest
+`--base-url` (including `PYTEST_ADDOPTS`), `BASE_URL`, `PYTEST_BASE_URL`,
+then selected environment YAML. A plugin-provided default is not an explicit
+override. Invalid higher-priority values fail rather than falling back.
+
+Pytest defaults to `--env=local`; supported choices are `local`, `dev`,
+`ci`, `docker`, `k8s`, and `staging`. The Docker runner can select its
+environment using `PETF_ENV`. In `ci`, PETF validates the resolved URL at
+session startup and permits only `http://127.0.0.1:8080`.
+
+The `base_url`, `test_username`, and `test_password` fixtures expose
+resolved settings. `TEST_USERNAME` can override the environment's username;
+`TEST_PASSWORD` is read from the process environment and may be empty until
+an authenticated test requires it. The session-scoped `api_request_context`
+uses the configured base URL and request timeout, and is disposed during
+teardown. `public_api_client` reuses it without an auth token. The UI
+`output_path` fixture reserves a distinct worker-safe Playwright directory
+for each test. See the artifact contract for current output locations.

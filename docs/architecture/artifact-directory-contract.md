@@ -80,3 +80,25 @@ Regression coverage:
 The tests verify deterministic paths, identity isolation,
 parameterized tests, supported artifact kinds, directory creation,
 exclusive reservation, path safety, and shared report locations.
+
+## PETF v1.1 Current Implementation and CI Staging
+
+Canonical path helpers are implemented, but artifact producers have **not**
+all migrated. At this checkpoint, producers still use
+`test-results/playwright/`, `test-results/screenshots/`,
+`test-results/diagnostics/`, optional `test-results/logs/`, and root-level
+`test-results/` HTML/JUnit reports.
+
+`scripts.collect_ci_artifacts` creates a newly reserved run-scoped staging
+directory under `artifacts/<run-id>/`. It creates `reports/` and `metadata/`,
+copies available reports into `reports/`, and copies available legacy output
+into `legacy/test-results/...`; when present, the FastAPI server log is
+copied to `legacy/server-logs/`. Collection leaves original producer files
+unchanged. Before exposing the staged path to CI, the collector invokes
+artifact security verification. If verification fails, the newly staged
+directory is removed and publication is blocked.
+
+Thus **canonical CI staging does not imply canonical producer output**.
+The directory layout above describes the target path contract; the staging
+`legacy/` subtree is the currently implemented compatibility bridge.
+See [CI publication operations](../operations/ci-artifact-publication.md).

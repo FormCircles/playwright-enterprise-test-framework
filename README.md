@@ -1366,3 +1366,18 @@ The Playwright Enterprise Test Framework demonstrates how modern enterprise brow
 The project intentionally emphasizes engineering best practices over test quantity. By combining browser automation, API testing, a realistic FastAPI Mock Application, Docker, GitHub Actions, and scalable project organization, it provides a practical foundation for enterprise-quality automation development.
 
 As the framework evolves beyond v1.0, future work will focus on Kubernetes-based execution, expanded browser coverage, advanced automation capabilities, and cloud-native testing while preserving the maintainability and extensibility established in this initial release.
+
+## PETF v1.1 Configuration and Diagnostics
+
+The Q4-S1 implementation checkpoint includes deterministic configuration,
+environment selection, session-scoped API fixtures, isolated UI outputs,
+failure diagnostics, screenshots, traces, and verified CI artifact staging.
+This checkpoint is **not** a PETF v1.1.0 release declaration.
+
+Operational references:
+
+- [Configuration and environment selection](docs/testing/base-url-resolution.md)
+- [Artifact directory contract](docs/architecture/artifact-directory-contract.md)
+- [Screenshot hygiene](docs/screenshot-artifact-hygiene.md)
+- [Trace activation](docs/trace-activation-policy.md)
+- [CI artifact publication](docs/operations/ci-artifact-publication.md)
