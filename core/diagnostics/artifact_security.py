@@ -54,14 +54,13 @@ class ArtifactSecurityError(RuntimeError):
 def _check_content(content: bytes, label: str) -> None:
     """Reject recognizable credentials without exposing values."""
     if BEARER_TOKEN_PATTERN.search(content.decode("utf-8", errors="replace")):
-        raise ArtifactSecurityError(f"Bearer token detected: {label}")
+        raise ArtifactSecurityError(f"PETF_SEC_BEARER detected: {label}")
 
     if CREDENTIAL_PATTERN.search(content):
-        raise ArtifactSecurityError(f"Credential detected: {label}")
+        raise ArtifactSecurityError(f"PETF_SEC_CREDENTIAL detected: {label}")
 
     if PRIVATE_KEY_PATTERN.search(content):
-        raise ArtifactSecurityError(f"Private key detected: {label}")
-
+        raise ArtifactSecurityError(f"PETF_SEC_PRIVATE_KEY detected: {label}")
 
 
 def verify_text_content(content: bytes, label: str) -> None:

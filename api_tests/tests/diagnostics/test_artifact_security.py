@@ -36,7 +36,7 @@ def test_bearer_token_is_rejected(tmp_path: Path) -> None:
         b"Authorization: Bearer PETF97_SYNTHETIC_TOKEN",
     )
 
-    with pytest.raises(ArtifactSecurityError, match="Bearer token"):
+    with pytest.raises(ArtifactSecurityError, match="PETF_SEC_BEARER"):
         verify_artifact_security(tmp_path)
 
 
@@ -47,7 +47,7 @@ def test_credential_assignment_is_rejected(tmp_path: Path) -> None:
         b"password=PETF97_SYNTHETIC_PASSWORD",
     )
 
-    with pytest.raises(ArtifactSecurityError, match="Credential"):
+    with pytest.raises(ArtifactSecurityError, match="PETF_SEC_CREDENTIAL"):
         verify_artifact_security(tmp_path)
 
 
@@ -58,7 +58,7 @@ def test_private_key_is_rejected(tmp_path: Path) -> None:
         b"-----BEGIN PRIVATE KEY-----\nsynthetic\n",
     )
 
-    with pytest.raises(ArtifactSecurityError, match="Private key"):
+    with pytest.raises(ArtifactSecurityError, match="PETF_SEC_PRIVATE_KEY"):
         verify_artifact_security(tmp_path)
 
 
@@ -80,7 +80,7 @@ def test_zip_with_secret_is_rejected(tmp_path: Path) -> None:
             "Authorization: Bearer PETF97_SYNTHETIC_TOKEN",
         )
 
-    with pytest.raises(ArtifactSecurityError, match="Bearer token"):
+    with pytest.raises(ArtifactSecurityError, match="PETF_SEC_BEARER"):
         verify_artifact_security(tmp_path)
 
 
@@ -127,7 +127,7 @@ def test_nested_zip_with_secret_is_rejected(tmp_path: Path) -> None:
     with zipfile.ZipFile(tmp_path / "outer.zip", "w") as archive:
         archive.writestr("inner.zip", inner.getvalue())
 
-    with pytest.raises(ArtifactSecurityError, match="Bearer token"):
+    with pytest.raises(ArtifactSecurityError, match="PETF_SEC_BEARER"):
         verify_artifact_security(tmp_path)
 
 
