@@ -58,7 +58,7 @@ jobs:
       - name: Verify container is running
         run: |
           docker ps
-          docker logs $CONTAINER_NAME
+          docker logs $CONTAINER_NAME > /tmp/petf-startup.log 2>&1 || true
 
       - name: Wait for FastAPI health endpoint
         run: |
@@ -72,7 +72,7 @@ jobs:
           done
 
           echo "FastAPI container failed health check"
-          docker logs $CONTAINER_NAME
+          docker logs $CONTAINER_NAME > /tmp/petf-health.log 2>&1 || true
           exit 1
 
       - name: Set up Python
@@ -104,12 +104,30 @@ jobs:
           docker ps -a > test-results/logs/docker-ps.txt || true
           docker logs $CONTAINER_NAME > test-results/logs/fastapi-container.log 2>&1 || true
 
-      - name: Upload smoke test artifacts
-        if: always()
+      - name: Display verified container diagnostics
+        if: ${{ always() && !cancelled() }}
+        run: |
+          for log in /tmp/petf-startup.log /tmp/petf-health.log /tmp/petf-failure.log; do
+            if [ -f "$log" ]; then
+              python -m scripts.safe_console_log "$log" || true
+            fi
+          done
+
+      - name: Collect and verify PETF smoke artifacts
+        id: collect_artifacts
+        if: ${{ always() && !cancelled() }}
+        run: |
+          python -m scripts.collect_ci_artifacts \
+            --run-id "ci-${{ github.run_id }}-${{ github.run_attempt }}"
+
+      - name: Upload verified PETF smoke artifacts
+        if: ${{ always() && !cancelled() && steps.collect_artifacts.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
           name: smoke-test-results
-          path: test-results/
+          path: ${{ steps.collect_artifacts.outputs.artifact_path }}
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Stop and clean up FastAPI container
         if: always()

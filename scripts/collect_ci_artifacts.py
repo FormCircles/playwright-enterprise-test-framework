@@ -17,12 +17,15 @@ from core.diagnostics.artifact_security import verify_artifact_security
 REPORT_FILES = (
     Path("test-results/junit-results.xml"),
     Path("test-results/report.html"),
+    Path("test-results/smoke-junit-results.xml"),
+    Path("test-results/smoke-report.html"),
 )
 
 LEGACY_DIRECTORIES = (
     Path("test-results/diagnostics"),
     Path("test-results/screenshots"),
     Path("test-results/playwright"),
+    Path("test-results/logs"),
 )
 
 SERVER_LOG = Path("sut/FastAPIMockApp/server.log")

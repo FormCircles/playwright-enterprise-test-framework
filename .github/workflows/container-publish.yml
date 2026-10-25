@@ -69,7 +69,7 @@ jobs:
           done
 
           echo "App failed to become healthy"
-          docker logs fc-fastapi-sut
+          docker logs fc-fastapi-sut > /tmp/petf-health.log 2>&1 || true
           exit 1
 
       - name: Set up Python
@@ -98,12 +98,30 @@ jobs:
             --html=test-results/report.html \
             --self-contained-html
 
-      - name: Upload test artifacts
-        if: always()
+      - name: Display verified container diagnostics
+        if: ${{ always() && !cancelled() }}
+        run: |
+          for log in /tmp/petf-startup.log /tmp/petf-health.log /tmp/petf-failure.log; do
+            if [ -f "$log" ]; then
+              python -m scripts.safe_console_log "$log" || true
+            fi
+          done
+
+      - name: Collect and verify PETF artifacts
+        id: collect_artifacts
+        if: ${{ always() && !cancelled() }}
+        run: |
+          python -m scripts.collect_ci_artifacts \
+            --run-id "ci-${{ github.run_id }}-${{ github.run_attempt }}"
+
+      - name: Upload verified PETF artifacts
+        if: ${{ always() && !cancelled() && steps.collect_artifacts.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: test-results/
+          path: ${{ steps.collect_artifacts.outputs.artifact_path }}
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Login to GHCR
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -114,7 +132,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish tested image
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.collect_artifacts.outcome == 'success' }}
         run: |
           docker push $IMAGE_SHA
           docker push $IMAGE_LATEST
@@ -122,7 +140,8 @@ jobs:
       - name: Show container logs on failure
         if: failure()
         run: |
-          docker logs fc-fastapi-sut || true
+          docker logs fc-fastapi-sut > /tmp/petf-failure.log 2>&1 || true
+          python -m scripts.safe_console_log /tmp/petf-failure.log || true
 
       - name: Notify Pumble - CI finished
         if: always()

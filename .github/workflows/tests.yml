@@ -108,14 +108,14 @@ jobs:
       # - scheduled workflow
       # - full validation suite
 
-      - name: Print server logs
+      - name: Print verified server logs
         if: ${{ always() }}
         run: |
-          cat sut/FastAPIMockApp/server.log || echo "No server.log found"
+          python -m scripts.safe_console_log             sut/FastAPIMockApp/server.log || true
 
       - name: Collect canonical PETF artifacts
         id: collect_artifacts
-        if: ${{ !cancelled() }}
+        if: ${{ always() && !cancelled() }}
         run: |
           python -m scripts.collect_ci_artifacts \
             --run-id "ci-${{ github.run_id }}-${{ github.run_attempt }}"

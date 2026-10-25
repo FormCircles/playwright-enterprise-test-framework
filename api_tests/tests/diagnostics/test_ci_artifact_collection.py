@@ -111,7 +111,7 @@ def test_rejects_sensitive_artifacts_and_preserves_sources(tmp_path):
         "Authorization: Bearer PETF97_SYNTHETIC_SECRET",
     )
 
-    with pytest.raises(ArtifactSecurityError, match="Bearer token"):
+    with pytest.raises(ArtifactSecurityError, match="PETF_SEC_BEARER"):
         collect_artifacts(run_id="ci-sensitive", workspace=tmp_path)
 
     assert original.read_text() == ("Authorization: Bearer PETF97_SYNTHETIC_SECRET")
@@ -143,8 +143,69 @@ def test_rejects_nested_zip_secret_and_cleans_staging(tmp_path):
 
     original = trace.read_bytes()
 
-    with pytest.raises(ArtifactSecurityError, match="Bearer token"):
+    with pytest.raises(ArtifactSecurityError, match="PETF_SEC_BEARER"):
         collect_artifacts(run_id="ci-nested", workspace=tmp_path)
 
     assert trace.read_bytes() == original
     assert not list((tmp_path / "artifacts").iterdir())
+
+
+def test_petf102_collects_smoke_reports_and_logs(tmp_path):
+    from scripts.collect_ci_artifacts import collect_artifacts
+
+    results = tmp_path / "test-results"
+    logs = results / "logs"
+    logs.mkdir(parents=True)
+
+    (results / "smoke-junit-results.xml").write_text(
+        "<testsuite tests='1'/>", encoding="utf-8"
+    )
+    (results / "smoke-report.html").write_text(
+        "<html><body>Smoke test passed</body></html>",
+        encoding="utf-8",
+    )
+    (logs / "fastapi-container.log").write_text(
+        "Application started successfully",
+        encoding="utf-8",
+    )
+
+    collected = collect_artifacts(
+        run_id="petf102-smoke",
+        workspace=tmp_path,
+    )
+
+    assert (collected / "reports" / "smoke-junit-results.xml").is_file()
+
+    assert (collected / "reports" / "smoke-report.html").is_file()
+
+    assert (
+        collected / "legacy" / "test-results" / "logs" / "fastapi-container.log"
+    ).is_file()
+
+
+def test_petf102_rejects_sensitive_container_logs(tmp_path):
+    import pytest
+
+    from core.diagnostics.artifact_security import ArtifactSecurityError
+    from scripts.collect_ci_artifacts import collect_artifacts
+
+    logs = tmp_path / "test-results" / "logs"
+    logs.mkdir(parents=True)
+
+    original = logs / "fastapi-container.log"
+    original.write_text(
+        "Authorization: Bearer synthetic-test-token-123456",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ArtifactSecurityError):
+        collect_artifacts(
+            run_id="petf102-sensitive-log",
+            workspace=tmp_path,
+        )
+
+    assert original.is_file()
+    assert original.read_text(encoding="utf-8").startswith("Authorization: Bearer")
+
+    staging_root = tmp_path / "artifacts"
+    assert not list(staging_root.rglob("fastapi-container.log"))
