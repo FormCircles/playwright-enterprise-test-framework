@@ -99,7 +99,32 @@ TEST_USERNAME=admin TEST_PASSWORD=password BASE_URL=http://127.0.0.1:8080 \
 
 **Result:** 2 passed, 311 deselected in 1.34 seconds. API health and Chromium UI login smoke tests passed. Both JUnit XML and HTML reports were generated.
 
-**Limitation:** This was a local simulation using Python 3.10.12. The repository's GitHub Actions workflow targets Python 3.12, but an actual hosted workflow run was not verified.
+**Local CI-mode assessment:** PASS. This local simulation used
+Python 3.10.12, while the GitHub Actions workflow targets Python 3.12.
+
+### GitHub-Hosted Workflow Verification
+
+Following the initial local verification, PR #100 was opened,
+successfully checked, and merged into `main`.
+
+Observed successful GitHub Actions workflows:
+
+| Workflow | Context | Result |
+|---|---|---|
+| Run Tests | PR #100 | PASS |
+| Build Test Publish Container | PR #100 | PASS |
+| Run Published Container | PR #100 | PASS |
+| Run Tests | Merged `main` | PASS |
+| Build Test Publish Container | Merged `main` | PASS |
+
+Merge commit: `df89588`.
+
+The GitHub Actions workflow results provide hosted CI evidence
+beyond the original local CI-mode simulation.
+
+**Assessment:** PASS for the observed GitHub-hosted workflows.
+The verification does not establish compatibility with every
+possible CI configuration.
 
 ## 8. Configuration Compatibility
 
@@ -119,7 +144,7 @@ The dedicated `petf-101-sut` container and `petf-101-network` were removed after
 
 ## 10. Limitations and Follow-Up Recommendations
 
-1. **Actual GitHub Actions execution — NOT VERIFIED.** Run and inspect the hosted workflow in a CI-specific follow-up.
+1. **Actual GitHub Actions execution — VERIFIED.** PR #100 and post-merge workflows completed successfully.
 2. **Base URL consistency — OBSERVATION.** Confirm pytest-playwright and PETF Settings consistently select the intended target for each environment.
 3. **Docker image size — OPTIMIZATION OPPORTUNITY.** The ~2.5 GB runner image may warrant future optimization; it did not block verification.
 4. **Parallel execution — EXPERIMENTAL.** Retain serial as the default; require separate approval and testing before expanding worker counts or UI parallelism.
@@ -127,7 +152,7 @@ The dedicated `petf-101-sut` container and `petf-101-network` were removed after
 
 ## 11. Final Assessment
 
-**PASS WITH DOCUMENTED LIMITATIONS** for the selected local serial, experimental two-worker API, Docker smoke/API, and local CI-mode suites. No executed tests failed. This result does not establish an actual GitHub Actions pass or unrestricted parallel execution.
+**PASS WITH DOCUMENTED LIMITATIONS** for the selected local serial, experimental two-worker API, Docker smoke/API, and local CI-mode suites. No executed tests failed. Subsequent GitHub Actions runs passed for PR #100 and the merged main branch. This result does not authorize unrestricted parallel execution.
 
 **Recommended Jira disposition:** PETF-101 may be completed after review and commit of this record **if** its acceptance criteria do not require an actual hosted CI run. Track unverified requirements separately.
 
@@ -140,6 +165,8 @@ The dedicated `petf-101-sut` container and `petf-101-network` were removed after
 | Docker smoke JUnit | 2 passed |
 | Docker API JUnit | 305 passed, 1 skipped |
 | Local CI smoke JUnit | 2 passed |
+| GitHub Actions PR #100 | 3 workflows passed |
+| GitHub Actions merged main | 2 workflows passed |
 | Docker health request | HTTP 200 |
 | Docker cleanup | Successful |
 | Unrelated containers | Unaffected |
@@ -148,6 +175,6 @@ Reports were generated in temporary host directories during the walkthrough and 
 
 ## 13. Conclusion
 
-PETF-101 demonstrated successful execution of the selected test suites in the tested modes. GitHub Actions execution, exhaustive cross-environment request tracing, and broader parallel configurations remain unverified.
+PETF-101 demonstrated successful execution of the selected test suites in the tested modes. Subsequent GitHub Actions workflows also passed. Exhaustive cross-environment request tracing and broader parallel configurations remain unverified.
 
 **Final recommendation: PASS WITH DOCUMENTED LIMITATIONS.**
