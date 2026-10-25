@@ -172,3 +172,98 @@ def test_archive_nesting_limit_is_enforced(tmp_path: Path) -> None:
         match="nesting limit exceeded",
     ):
         verify_artifact_security(tmp_path)
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        b"access_token=%2A%2A%2AREDACTED%2A%2A%2A",
+        b"password=%2A%2A%2AREDACTED%2A%2A%2A",
+    ],
+    ids=["redacted-access-token", "redacted-password"],
+)
+def test_encoded_redaction_is_accepted(tmp_path: Path, content: bytes) -> None:
+    write_file(tmp_path, "reports/report.html", content)
+    verify_artifact_security(tmp_path)
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        b"access_token=actual-secret-value",
+        b"access_token=%2A%2A%2AREDACTED%2A%2A%2Aextra",
+        b"password=actual-secret-value",
+    ],
+    ids=[
+        "actual-access-token",
+        "partial-redaction",
+        "actual-password",
+    ],
+)
+def test_unsafe_credential_values_are_rejected(
+    tmp_path: Path,
+    content: bytes,
+) -> None:
+    write_file(tmp_path, "reports/report.html", content)
+
+    with pytest.raises(ArtifactSecurityError, match="PETF_SEC_CREDENTIAL"):
+        verify_artifact_security(tmp_path)
+
+
+@pytest.mark.parametrize(
+    "content,should_pass",
+    [
+        (
+            b"access_token=%2A%2A%2AREDACTED%2A%2A%2A&amp;page=1",
+            True,
+        ),
+        (
+            b"access_token=synthetic-secret-value&amp;page=1",
+            False,
+        ),
+        (
+            b"access_token=%2A%2A%2AREDACTED%2A%2A%2Aextra&amp;page=1",
+            False,
+        ),
+        (
+            b"access_token=%2A%2A%2AREDACTED%2A%2A%2A%41&amp;page=1",
+            False,
+        ),
+        (
+            b"access_token=%2A%2A%2AREDACTED%2A%2A%2A"
+            + b"&amp;password=synthetic-secret-value",
+            False,
+        ),
+        (
+            b"access_token=%2A%2A%2AREDACTED%2A%2A%2A"
+            + b"&password=synthetic-secret-value",
+            False,
+        ),
+        (
+            b"access_token=%2A%2A%2AREDACTED%2A%2A%2A"
+            + b"synthetic-secret",
+            False,
+        ),
+    ],
+    ids=[
+        "redacted-html-query",
+        "actual-credential-html-query",
+        "appended-value-html-query",
+        "encoded-suffix-html-query",
+        "second-credential-html-query",
+        "second-credential-raw-query",
+        "appended-credential",
+    ],
+)
+def test_html_escaped_credential_boundaries(
+    tmp_path: Path,
+    content: bytes,
+    should_pass: bool,
+) -> None:
+    write_file(tmp_path, "reports/report.html", content)
+
+    if should_pass:
+        verify_artifact_security(tmp_path)
+    else:
+        with pytest.raises(ArtifactSecurityError, match="PETF_SEC_CREDENTIAL"):
+            verify_artifact_security(tmp_path)

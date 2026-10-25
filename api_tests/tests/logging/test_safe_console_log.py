@@ -21,6 +21,11 @@ def test_displays_safe_log(tmp_path, capsys):
         "password=synthetic-password-123456",
         "-----BEGIN PRIVATE KEY-----",
     ],
+    ids=[
+        "bearer-token",
+        "password-assignment",
+        "private-key-header",
+    ],
 )
 def test_rejects_sensitive_logs(tmp_path, capsys, sensitive_content):
     log = tmp_path / "sensitive.log"

@@ -41,7 +41,7 @@ CREDENTIAL_PATTERN = re.compile(
     rb"(?i)\b(?:password|passwd|secret|api[_-]?key|"
     rb"access[_-]?token|refresh[_-]?token|"
     rb"authorization|cookie)\s*[:=]\s*"
-    rb"""["']?[^\s"'<>]{6,}"""
+    rb"""["']?(?:(?!&amp;)[^\s"'<>]){6,}"""
 )
 
 PRIVATE_KEY_PATTERN = re.compile(rb"-----BEGIN (?:[A-Z0-9 ]+ )?PRIVATE KEY-----")
@@ -56,7 +56,24 @@ def _check_content(content: bytes, label: str) -> None:
     if BEARER_TOKEN_PATTERN.search(content.decode("utf-8", errors="replace")):
         raise ArtifactSecurityError(f"PETF_SEC_BEARER detected: {label}")
 
-    if CREDENTIAL_PATTERN.search(content):
+    for match in CREDENTIAL_PATTERN.finditer(content):
+        matched = match.group(0)
+
+        # Permit only a complete, recognized redaction marker.
+        if re.fullmatch(
+            rb"(?i)\b(?:password|passwd|secret|api[_-]?key|"
+            rb"access[_-]?token|refresh[_-]?token|"
+            rb"authorization|cookie)\s*[:=]\s*"
+            rb"(?:%2A){3}REDACTED(?:%2A){3}",
+            matched,
+        ):
+            # Require the complete marker to end at a recognized boundary.
+            end = match.end()
+            if end == len(content) or content[end] in (
+                9, 10, 13, 32, 34, 39, 60,
+            ) or content[end:end + 5] == b"&amp;":
+                continue
+
         raise ArtifactSecurityError(f"PETF_SEC_CREDENTIAL detected: {label}")
 
     if PRIVATE_KEY_PATTERN.search(content):
