@@ -63,6 +63,12 @@ def _check_content(content: bytes, label: str) -> None:
         raise ArtifactSecurityError(f"Private key detected: {label}")
 
 
+
+def verify_text_content(content: bytes, label: str) -> None:
+    """Verify text content without exposing sensitive values."""
+    _check_content(content, label)
+
+
 def _check_zip(
     content: bytes,
     label: str,
