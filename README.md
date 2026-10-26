@@ -1381,3 +1381,7 @@ Operational references:
 - [Screenshot hygiene](docs/screenshot-artifact-hygiene.md)
 - [Trace activation](docs/trace-activation-policy.md)
 - [CI artifact publication](docs/operations/ci-artifact-publication.md)
+
+## PETF v1.1 Consumer Migration
+
+See the [consumer compatibility and migration guide](docs/migration/petf-v1.1-consumer-compatibility.md) before adopting the v1.1 checkpoint.
